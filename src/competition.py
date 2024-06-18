@@ -23,6 +23,11 @@ class competition():
     def export_to_hdf5(self):
         with h5py.File("competition\\" + self.competition_name + ".hdf5", "w") as f: 
             for shooter in self.shooters:
+                f.create_dataset((shooter.firstname + shooter.lastname + "/first_name"), data = shooter.firstname)
+                f.create_dataset((shooter.firstname + shooter.lastname + "/last_name"), data = shooter.lastname)
+                f.create_dataset((shooter.firstname + shooter.lastname + "/age"), data = shooter.age)
+                f.create_dataset((shooter.firstname + shooter.lastname + "/result"), data = shooter.result)
+                f.create_dataset((shooter.firstname + shooter.lastname + "/diciplin"), data = shooter.diciplin)
                 for series in shooter.series:
                     for shot in shooter.series[series]:
                         array = np.array(shooter.series[series][shot])
@@ -30,7 +35,7 @@ class competition():
                         #print(series)
                         #print(shooter.series[series][shot])
                         #print(array)
-                        dset = f.create_dataset((shooter.firstname + shooter.lastname + "/" + series + "/" + shot).replace(" ", "_"), data = array)
+                        f.create_dataset((shooter.firstname + shooter.lastname + "/" + series + "/" + shot).replace(" ", "_"), data = array)
                 
         
 class issf_competition(competition):
