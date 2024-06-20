@@ -4,10 +4,20 @@ PORT = 4000
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect((HOST, PORT))
-
+lst = []
+lst2 = []
 while True:
     data = repr(s.recv(1024))
-    print(repr(data))
+    #data.replace("'", "")
+    #data.replace("\\\n", "")
+    #data.replace("\\\r", "")
+    #print(data)
+    
+    lst.append(data)
+    if lst != lst2:
+        pass
+    print(lst)
+    
 
 s.close()
 
