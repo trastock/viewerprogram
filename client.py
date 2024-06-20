@@ -1,12 +1,12 @@
 import socket
-HOST = "127.0.0.1"
+HOST = "localhost"
 PORT = 4000
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect((HOST, PORT))
 
 while True:
-    data = s.recv(1024)
+    data = repr(s.recv(1024))
     print(repr(data))
 
 s.close()
