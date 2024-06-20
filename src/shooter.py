@@ -16,7 +16,6 @@ class shooter():
         self.series = self.get_series()
 
     def get_series(self):
-        print(os.getcwd())
         seriesline = ""
         series = {}
         with open("recourses\diciplins.csv", mode="r") as f:
@@ -28,19 +27,16 @@ class shooter():
         for i in range(len(seriesline)):
             series["Series " + str(i + 1)] = {}
             for j in range(int(seriesline[i])):
-                series["Series " + str(i + 1)]["Shot " + str(j + 1)] = {}
+                series["Series " + str(i + 1)]["Shot " + str(j + 1)] = []
         series["Remaining"] = {}     
         return series
         
-    def add_shot(self, incoming_shot : dict):
+    def add_shot(self, incoming_shot : list):
         for serie in self.series:
             for shot in self.series[serie]:
-                print(self.series[serie][shot])
                 if not self.series[serie][shot]:
                    self.series[serie][shot] = incoming_shot     
                    break
+            break
                        
             
-emil = shooter(age="22", diciplin="FR60PRFINAL")
-emil.add_shot({'decimal': 10.9})
-print(emil.series)
