@@ -2,23 +2,75 @@ import socket
 HOST = "localhost"
 PORT = 4000
 
+
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.connect((HOST, PORT))
-lst = []
+try:
+    s.connect((HOST, PORT))
+except ConnectionRefusedError:
+    print("Connection refused. Please make sure the server is running and listening on the specified host and port.")
+
+#lst = []
 lst2 = []
+_SHOT = []
+_TOTL = []
+_PRST = []
+_STAT = []
+_NAME = []
+_SHID = []
+_SHPR = []
+_SNAT = []
+_GRPH = []
+_TEAM = []
+_PRCH = []
+_SUBT = []
+_DIAG = []
 while True:
     data = repr(s.recv(1024))
     #data.replace("'", "")
     #data.replace("\\\n", "")
     #data.replace("\\\r", "")
     #print(data)
+    lst = data.split("\\r\\n")
+    #lst2.append(lst)
+    #if lst != lst2:
+     #   pass
+    #print(lst)
     
-    lst.append(data)
-    if lst != lst2:
-        pass
-    print(lst)
+    for element in lst:
+        #lst2.append(element.split(";"))
+        if "_STAT" in element:
+            _STAT.append(element.split(";"))
+        elif "_PRST" in element:
+            _PRST.append(element.split(";"))
+        elif "_NAME" in element:
+            _NAME.append(element.split(";"))
+        elif "_SHID" in element:
+            _SHID.append(element.split(";"))
+        elif "_SHOT" in element:
+            _SHOT.append(element.split(";"))
+        elif "_TOTL" in element:
+            _TOTL.append(element.split(";"))
+        elif "_SHPR" in element:
+            _SHPR.append(element.split(";"))
+        elif "_SNAT" in element:
+            _SNAT.append(element.split(";"))
+        elif "_GRPH" in element:
+            _GRPH.append(element.split(";"))
+        elif "_TEAM" in element:
+            _TEAM.append(element.split(";"))
+        elif "_PRCH" in element:
+            _PRCH.append(element.split(";"))
+        elif "_SUBT" in element:
+            _SUBT.append(element.split(";"))
+        elif "_DIAG" in element:
+            _DIAG.append(element.split(";"))
+        else:
+            lst2.append(element.split(";"))
+        
     
-
+    print(_TOTL)
+    print("\n")
+    #print(lst2)
 s.close()
 
 """
