@@ -68,8 +68,26 @@ while True:
             lst2.append(element.split(";"))
         
     
-    print(_TOTL)
+    print("_STAT\n", _STAT)
+    print("_PRST\n", _PRST)
+    print("_NAME\n", _NAME)
+    print("_SHID\n", _SHID)
+    #print("_SHOT\n", _SHOT)
+    print("_TOTL\n", _TOTL)
+    print("_SHPR\n", _SHPR)
+    print("_SNAT\n", _SNAT)
+    print("_GRPH\n", _GRPH)
+    print("_TEAM\n", _TEAM)
+    print("_PRCH\n", _PRCH)
+    print("_SUBT\n", _SUBT)
+    print("_DIAG\n", _DIAG)
     print("\n")
+    print("Övrig\n", lst2)
+    print("\n")
+    print("Antal skott: " + str(len(_SHOT)))
+    print("\n")
+    #print(lst2)
+
     #print(lst2)
 s.close()
 
