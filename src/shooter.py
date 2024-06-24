@@ -7,12 +7,14 @@ class shooter():
                      , lastname : str = ""
                      , age : str = ""
                      , result : dict = 0
-                     , diciplin : str = ""):
+                     , diciplin : str = ""
+                     , lane : str = ""):
         self.firstname = firstname
         self.lastname = lastname
         self.age = age
         self.result = result
         self.diciplin = diciplin
+        self.lane = lane
         self.series = self.get_series()
 
     def get_series(self):

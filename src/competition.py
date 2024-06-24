@@ -1,4 +1,9 @@
-from shooter import shooter
+
+try:
+    from .shooter import shooter
+except:
+    from shooter import shooter
+
 import numpy as np
 import h5py 
 import os
@@ -17,15 +22,17 @@ class competition():
         self.diciplin = diciplin
         self.shooters = []
     
-    def add_shooter(self, firstname, lastname, age, result):
-        self.shooters.append(shooter(firstname, lastname, age, result, self.diciplin))
+    def add_shooter(self, firstname, lastname, age, result, lane):
+        self.shooters.append(shooter(firstname, lastname, age, result, self.diciplin, lane))
     
-    def export_to_hdf5(self):
+    def export_to_hdf5(self, data : dict):
         with h5py.File("competitions\\" + self.competition_name + ".hdf5", "w") as f: 
             f.create_dataset("competition_info/name", data = self.competition_name)
             f.create_dataset("competition_info/date", data = self.date)
             f.create_dataset("competition_info/host", data = self.host)
             f.create_dataset("competition_info/diciplin", data = self.diciplin)
+            for item in data.items():
+                print(item)
             for shooter in self.shooters:
                 f.create_dataset((shooter.firstname + shooter.lastname + "/first_name"), data = shooter.firstname)
                 f.create_dataset((shooter.firstname + shooter.lastname + "/last_name"), data = shooter.lastname)
