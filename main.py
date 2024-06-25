@@ -14,7 +14,7 @@ if __name__ == "__main__":
             
             data = src.update_data(s, data)
             comp.export_to_hdf5(data)
-            input("\nType Ctrl+C to exit. Press Enter to continue...")
+            #input("\nType Ctrl+C to exit. Press Enter to continue...")
             
     except KeyboardInterrupt:
         print("Program stopped by user.")

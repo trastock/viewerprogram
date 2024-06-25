@@ -106,6 +106,6 @@ comp.shooters[1].add_shot([9.6, 9])
 
 comp.export_to_hdf5()
 """
-comp = issf_competition_regular()
+#comp = issf_competition_regular()
 
-comp.import_from_hdf5("competitions\\Nyköping Open.hdf5")
+#comp.import_from_hdf5("competitions\\Nyköping Open.hdf5")

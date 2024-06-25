@@ -1,6 +1,6 @@
 import socket
 import datetime
-from interruptingcow import timeout 
+#from interruptingcow import timeout 
 
 
 def data_setup():
@@ -26,15 +26,13 @@ def update_data(s : socket.socket, outdata : dict):
         outdata = {}
         for data_type in data_types:
             outdata[data_type] = []
-    print("1")
-    try:
-        with timeout(5, exception=RuntimeError):
-            data = repr(s.recv(1024))
-    except RuntimeError:
-        print("didn't finish within 5 seconds")
+    #try:
+        #with timeout(5, exception=RuntimeError):
+    data = repr(s.recv(1024))
+    #except RuntimeError:
+     #   print("didn't finish within 5 seconds")
     
     
-    print("2")
     lst = data.split("\\r\\n")
     for element in lst:
         for data_type in data_types:
