@@ -5,16 +5,22 @@ class shooter():
     
     def __init__(self, firstname : str = ""
                      , lastname : str = ""
-                     , age : str = ""
+                     , league : str = ""
+                     , team : str = ""
                      , result : dict = 0
                      , diciplin : str = ""
-                     , lane : str = ""):
+                     , lane : str = ""
+                     , startnumber : str = ""
+                     , relay : str = ""):
         self.firstname = firstname
         self.lastname = lastname
-        self.age = age
+        self.league = league
+        self.team = team
         self.result = result
         self.diciplin = diciplin
         self.lane = lane
+        self.startnumber = startnumber
+        self.relay = relay
         self.series = self.get_series()
 
     def get_series(self):

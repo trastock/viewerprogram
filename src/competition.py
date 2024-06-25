@@ -1,3 +1,4 @@
+import csv
 
 try:
     from .shooter import shooter
@@ -13,17 +14,43 @@ class competition():
                  competition_name : str = "",
                  date : str = "",
                  host : str = "",
-                 diciplin : str = ""
+                 diciplin : str = "",
+                 firstlane : str = "",
+                 lastlane : str = ""
                  ):
     
         self.competition_name = competition_name
         self.date = date
         self.host = host
         self.diciplin = diciplin
+        self.firstlane = firstlane
+        self.lastlane = lastlane
         self.shooters = []
+        self.currentlane = round(0.5*(int(self.lastlane) + int(self.firstlane)))
+        self.relays = {}
     
-    def add_shooter(self, firstname, lastname, age, result, lane):
-        self.shooters.append(shooter(firstname, lastname, age, result, self.diciplin, lane))
+    def add_shooter(self, firstname, lastname, league, team,  result, relay):
+        number_of_shooters = self.get_number_of_shooters_in_relay(relay)
+        startnumber = str(number_of_shooters + 100)
+        self.currentlane = (self.currentlane + 
+                            ((-1)**(number_of_shooters + 1))*number_of_shooters)
+        self.shooters.append(shooter(firstname, lastname, league, team, result, 
+                                     self.diciplin, str(self.currentlane), startnumber, relay))
+    def add_shooter_and_lane(self, firstname, lastname, league, team, result, relay, lane):
+        startnumber = str(len(self.shooters) + 100)
+        self.shooters.append(shooter(firstname, lastname, league, team, result, 
+                                     self.diciplin, lane, startnumber, relay))
+    
+    def get_number_of_shooters_in_relay(self, relay):
+        number_of_shooters = 0
+        for shooter in self.shooters:
+            if shooter.relay == relay:
+                number_of_shooters += 1
+        return number_of_shooters
+    
+    def add_relay(self, time : str):
+        self.relays[str(len(self.relays) + 1)] = time
+        #self.relays.append({len(self.relays) + 1: time})
     
     def export_to_hdf5(self, data : dict):
         with h5py.File("competitions\\" + self.competition_name + ".hdf5", "w") as f: 
@@ -36,7 +63,7 @@ class competition():
             for shooter in self.shooters:
                 f.create_dataset((shooter.firstname + shooter.lastname + "/first_name"), data = shooter.firstname)
                 f.create_dataset((shooter.firstname + shooter.lastname + "/last_name"), data = shooter.lastname)
-                f.create_dataset((shooter.firstname + shooter.lastname + "/age"), data = shooter.age)
+                f.create_dataset((shooter.firstname + shooter.lastname + "/league"), data = shooter.league)
                 f.create_dataset((shooter.firstname + shooter.lastname + "/result"), data = shooter.result)
                 f.create_dataset((shooter.firstname + shooter.lastname + "/diciplin"), data = shooter.diciplin)
                 for series in shooter.series:
@@ -59,7 +86,16 @@ class competition():
                 #print(f.values())
         except OSError:
             raise Exception("hdf5-file was not found")
-                
+    
+    def create_import(self, path):
+        with open(path + "\\" + self.competition_name.replace(" ", "_") + "_shooters.csv", "w", newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            for shooter in self.shooters:
+                writer.writerow([";" + shooter.startnumber + ";" + shooter.firstname + 
+                                 " " +  shooter.lastname + ";;;" + shooter.league + 
+                                 ";0;0;" + shooter.team + ";;" +  shooter.lane + ";" +
+                                 shooter.relay + ";" + self.relays[shooter.relay] + 
+                                 ";0;1;0;0"])
         
 class issf_competition(competition):
     def __init__(self,
