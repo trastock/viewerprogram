@@ -1,5 +1,7 @@
-import csv
-row = [';1000;Emil Alakulju;;;Herr;0;0;Nyköping;;1;1;18:30;0;1;0;0']
-with open('test.csv', "w", newline='') as csvfile:
-    writer = csv.writer(csvfile)
-    writer.writerow(row)
+from tabulate import tabulate
+
+header = ["header1", "header2", "header3"]
+
+table = [['one','two','three'],['four','five','six'],['seven','eight','nine']]
+
+print(tabulate(table, tablefmt='html', headers=header))

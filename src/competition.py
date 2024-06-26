@@ -96,6 +96,8 @@ class competition():
                                  ";0;0;" + shooter.team + ";;" +  shooter.lane + ";" +
                                  shooter.relay + ";" + self.relays[shooter.relay] + 
                                  ";0;1;0;0"])
+    def create_startlist(self, path):
+        pass
         
 class issf_competition(competition):
     def __init__(self,
