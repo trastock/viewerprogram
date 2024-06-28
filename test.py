@@ -14,9 +14,13 @@ date = "20/6"
 document_type = "Startlista"
 relay_title = "Skjutlag 1"
 
-before_table = "<h1 style=\"text-align:center;\">" + competition_name  + " " + document_type + "&nbsp;</h1> <h2 style=\"text-align:center;\">" + city + " " + date + "</h2> <h2 style=\"text-align:center;\">" + relay_title + "</h2> <figure class=\"table\" style=\"width:200%;\">"
+before_table = "<h1>" + competition_name  + " " + document_type + "&nbsp;</h1> <h2>" + city + " " + date + "</h2> <h2>" + relay_title + "</h2> <figure class=\"table\">"
 
 after_table = "</figure> <p>&nbsp;</p> <p>&nbsp;</p>"
+
+#before_table = "<html> <head> <link rel=\"stylesheet\" href=\"style.css\">  </head> <body> <h1>" + competition_name  + " " + document_type + "&nbsp;</h1> <h2>" + city + " " + date + "</h2> <h2>" + relay_title + "</h2> <figure class=\"table\">"
+
+#after_table = "</figure> <p>&nbsp;</p> <p>&nbsp;</p> </body> </html>"
 
 ingoing_string = before_table + html_table + after_table
 
@@ -44,4 +48,6 @@ path_to_wkhtml = r'c:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
 
 config = pdfkit.configuration(wkhtmltopdf = path_to_wkhtml)
 
-pdfkit.from_file(html_path, output_path = "test.pdf", configuration = config, css = "style.css")
+#pdfkit.from_file(html_path, output_path = "test.pdf", configuration = config, css = "style.css")
+
+pdfkit.from_string(ingoing_string, output_path = "test.pdf", configuration = config, css = "style.css")
