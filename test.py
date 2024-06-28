@@ -14,9 +14,11 @@ date = "20/6"
 document_type = "Startlista"
 relay_title = "Skjutlag 1"
 
-before_table = "<h1>" + competition_name  + " " + document_type + "&nbsp;</h1> <h2>" + city + " " + date + "</h2> <h2>" + relay_title + "</h2> <figure class=\"table\">"
+before_table = " <h1>" + competition_name  + " " + document_type + "&nbsp;</h1> <h2>" + city + " " + date + "</h2> <h2>" + relay_title + "</h2> <figure class=\"table\">"
 
-after_table = "</figure> <p>&nbsp;</p> <p>&nbsp;</p>"
+after_table = "</figure> <img src=\"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSMCeGz4Xab3Rxzhs8Hl3bBU9Iafs8FX4PIHg&s\"> <p>&nbsp;</p> <p>&nbsp;</p>"
+
+#<img src=\"recourses\\logo.jpg\">
 
 #before_table = "<html> <head> <link rel=\"stylesheet\" href=\"style.css\">  </head> <body> <h1>" + competition_name  + " " + document_type + "&nbsp;</h1> <h2>" + city + " " + date + "</h2> <h2>" + relay_title + "</h2> <figure class=\"table\">"
 
@@ -50,4 +52,4 @@ config = pdfkit.configuration(wkhtmltopdf = path_to_wkhtml)
 
 #pdfkit.from_file(html_path, output_path = "test.pdf", configuration = config, css = "style.css")
 
-pdfkit.from_string(ingoing_string, output_path = "test.pdf", configuration = config, css = "style.css")
+pdfkit.from_string(ingoing_string, output_path = "test.pdf", configuration = config, css = "style.css", options = {"enable-local-file-access": ""})
