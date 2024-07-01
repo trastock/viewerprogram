@@ -2,14 +2,14 @@ from tabulate import tabulate
 import pdfkit
 
 def make_pdf(table, header, competition_name, city, date, document_type, 
-             relay_title, logopic, sponsorpic, pdf_path,
+             relay_title, logopic, sponsorpic, pdf_path, time = "",
              path_to_wkhtml = r'c:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'):
     
     before_table = ("<img class=logopic src=\"" + logopic + 
                     "\"> <img class=sponsorpic src=\"" + 
                     sponsorpic + "\"> <h1>" + competition_name  + 
                     " " + document_type + "&nbsp;</h1> <h2 class=citydate>" + 
-                    city + " " + date + "</h2> <h2>" + relay_title + 
+                    city + " " + date + " " + time + "</h2> <h2>" + relay_title + 
                     "</h2> <figure class=\"table\">")
     after_table = "</figure> <p>&nbsp;</p> <p>&nbsp;</p>"
     

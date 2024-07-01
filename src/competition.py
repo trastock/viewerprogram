@@ -2,8 +2,10 @@ import csv
 
 try:
     from .shooter import shooter
+    from .make_pdf import make_pdf
 except:
     from shooter import shooter
+    from make_pdf import make_pdf
 
 import numpy as np
 import h5py 
@@ -16,7 +18,9 @@ class competition():
                  host : str = "",
                  diciplin : str = "",
                  firstlane : str = "",
-                 lastlane : str = ""
+                 lastlane : str = "",
+                 logopic : str = "",
+                 sponsorpic : str = ""
                  ):
     
         self.competition_name = competition_name
@@ -28,6 +32,8 @@ class competition():
         self.shooters = []
         self.currentlane = round(0.5*(int(self.lastlane) + int(self.firstlane)))
         self.relays = {}
+        self.logopic = logopic
+        self.sponsorpic = sponsorpic
     
     def add_shooter(self, firstname, lastname, league, team,  result, relay):
         number_of_shooters = self.get_number_of_shooters_in_relay(relay)
@@ -96,8 +102,16 @@ class competition():
                                  ";0;0;" + shooter.team + ";;" +  shooter.lane + ";" +
                                  shooter.relay + ";" + self.relays[shooter.relay] + 
                                  ";0;1;0;0"])
-    def create_startlist(self, path):
-        pass
+    def create_startlist(self, path, relay):
+        header = ["Tavla", "Namn", "Förening", "Klass"]
+        table = []
+        for shooter in self.shooters:
+            if shooter.relay == relay:
+                table.append([shooter.lane, shooter.firstname + " " +  shooter.lastname, 
+                              shooter.team, shooter.league])
+        make_pdf(table, header, self.competition_name, self.host
+                 , self.date, "Startlista", "Skjutlag " + relay, 
+                 self.logopic, self.sponsorpic, path, self.relays[relay])
         
 class issf_competition(competition):
     def __init__(self,
