@@ -111,7 +111,7 @@ class competition():
                               shooter.team, shooter.league])
         make_pdf(table, header, self.competition_name, self.host
                  , self.date, "Startlista", "Skjutlag " + relay, 
-                 self.logopic, self.sponsorpic, path, self.relays[relay])
+                 self.logopic, self.sponsorpic, path, self.relays[relay], 0)
         
 class issf_competition(competition):
     def __init__(self,
