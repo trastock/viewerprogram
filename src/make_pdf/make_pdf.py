@@ -1,7 +1,6 @@
 from tabulate import tabulate
 import pdfkit
 
-#TODO: Add sort_by
 
 def make_pdf(table, header, competition_name, city, date, document_type, 
              relay_title, logopic, sponsorpic, pdf_path, time = "",
