@@ -5,31 +5,22 @@ class shooter():
     
     def __init__(self, firstname : str = ""
                      , lastname : str = ""
-                     , league : str = ""
                      , team : str = ""
-                     , result : dict = 0
-                     , diciplin : str = ""
-                     , lane : str = ""
                      , startnumber : str = ""
-                     , relay : str = ""):
+                     ):
         self.firstname = firstname
         self.lastname = lastname
-        self.league = league
         self.team = team
-        self.result = result
-        self.diciplin = diciplin
-        self.lane = lane
         self.startnumber = startnumber
-        self.relay = relay
-        self.series = self.get_series()
+        self.relays = {}
 
-    def get_series(self):
+    def get_series(self, diciplin):
         seriesline = ""
         series = {}
         with open("recourses\diciplins.csv", mode="r") as f:
             csvfile = csv.reader(f)
             for line in csvfile:
-                if self.diciplin in line:
+                if diciplin in line:
                     seriesline = line
         seriesline.pop(0)
         for i in range(len(seriesline)):
@@ -46,5 +37,12 @@ class shooter():
                    self.series[serie][shot] = incoming_shot     
                    break
             break
-                       
-            
+    
+    def add_relay(self, relaynumber, diciplin, league, result, lane):
+        self.relays[relaynumber] = {"series": self.get_series(diciplin),
+                                    "dicipline": diciplin,
+                                    "league": league,
+                                    "result": result,
+                                    "lane": lane}
+    def __str__(self):
+        return self.startnumber

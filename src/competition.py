@@ -31,36 +31,57 @@ class competition():
         self.firstlane = firstlane
         self.lastlane = lastlane
         self.shooters = []
-        if self.firstlane and self.lastlane:
-            self.currentlane = round(0.5*(int(self.lastlane) + int(self.firstlane)))
-        else:
-            self.currentlane = 0
+        #if self.firstlane and self.lastlane:
+         #   self.currentlane = round(0.5*(int(self.lastlane) + int(self.firstlane)))
+        #else:
+         #   self.currentlane = 0
         self.relays = {}
         self.logopic = logopic
         self.sponsorpic = sponsorpic
         self.hdf5dir = hdf5dir
+        self.number_of_shooters = 0
     
-    def add_shooter(self, firstname, lastname, league, team,  result, relay):
+    
+    def add_shooter(self, firstname, lastname, team):
+        #number_of_shooters = self.get_number_of_shooters_in_relay(relay)
+        startnumber = str(self.number_of_shooters + 100)
+        #self.currentlane = (self.currentlane + 
+                            #((-1)**(number_of_shooters + 1))*number_of_shooters)
+        #self.shooters.append(shooter(firstname, lastname, league, team, result, 
+                                     #self.diciplin, str(self.currentlane), startnumber, relay))
+        self.shooters.append(shooter(firstname, lastname, team, startnumber))
+        self.number_of_shooters +=1
+ 
+    def add_shooter_to_relay(self, startnumber, diciplin, league, result, relay, lane = ""):
         number_of_shooters = self.get_number_of_shooters_in_relay(relay)
-        startnumber = str(number_of_shooters + 100)
-        self.currentlane = (self.currentlane + 
+        if not lane:
+            #self.currentlane = (self.currentlane + 
+            #                ((-1)**(number_of_shooters + 1))*number_of_shooters)
+            self.relays[relay]["current_lane"] = (self.relays[relay]["current_lane"] + 
                             ((-1)**(number_of_shooters + 1))*number_of_shooters)
-        self.shooters.append(shooter(firstname, lastname, league, team, result, 
-                                     self.diciplin, str(self.currentlane), startnumber, relay))
+            lane = self.relays[relay]["current_lane"]
+        for shooter in self.shooters:
+            if shooter.startnumber == startnumber:
+                shooter.add_relay(relay, diciplin, league, result, lane)
+    
+        
+        
+    """
     def add_shooter_and_lane(self, firstname, lastname, league, team, result, relay, lane):
         startnumber = str(len(self.shooters) + 100)
         self.shooters.append(shooter(firstname, lastname, league, team, result, 
                                      self.diciplin, lane, startnumber, relay))
-    
+    """
     def get_number_of_shooters_in_relay(self, relay):
         number_of_shooters = 0
         for shooter in self.shooters:
-            if shooter.relay == relay:
+            if relay in shooter.relays.keys():
                 number_of_shooters += 1
         return number_of_shooters
     
     def add_relay(self, time : str):
-        self.relays[str(len(self.relays) + 1)] = time
+        self.relays[str(len(self.relays) + 1)] = {"time": time,
+                                                  "current_lane": round(0.5*(int(self.lastlane) + int(self.firstlane)))}
         #self.relays.append({len(self.relays) + 1: time})
     
     def export_to_hdf5(self):
@@ -71,7 +92,7 @@ class competition():
             f.create_dataset("competition_info/diciplin", data = self.diciplin)
             f.create_dataset("competition_info/firstlane", data = self.firstlane)
             f.create_dataset("competition_info/lastlane", data = self.lastlane)
-            f.create_dataset("competition_info/currentlane", data = self.currentlane)
+            f.create_dataset("competition_info/currentlane", data = str(self.currentlane))
             for relay in self.relays:
                 f.create_dataset("competition_info/relays/" + relay, 
                                  data = self.relays[relay])
@@ -100,29 +121,36 @@ class competition():
             with h5py.File(path, "r") as f:
                 for key in list(f.keys()):
                     if key == "competition_info":
-                        self.competition_name = f[key + "/name"]
-                        self.date  = f[key + "/date"]
-                        self.host = f[key + "/host"]
-                        self.diciplin = f[key + "/diciplin"]
-                        self.firstlane = f[key + "/firstlane"]
-                        self.lastlane = f[key + "/lastlane"]
-                        self.currentlane = f[key + "/currentlane"]
-                        self.logopic = f[key + "/logopic"]
-                        self.sponsorpic = f[key + "/sponsorpic"]
-                        self.hdf5dir = f[key + "/hdf5dir"]
-                        #array = np.
-                        print(f[key + "/name"].asstr())
+                        self.competition_name = self.get_string(f, key + "/name")
+                        self.date  = self.get_string(f, key + "/date")
+                        self.host = self.get_string(f, key + "/host")
+                        self.diciplin = self.get_string(f, key + "/diciplin")
+                        self.firstlane = self.get_string(f, key + "/firstlane")
+                        self.lastlane = self.get_string(f, key + "/lastlane")
+                        self.currentlane = int(self.get_string(f, key + "/currentlane"))
+                        self.logopic = self.get_string(f, key + "/logopic")
+                        self.sponsorpic = self.get_string(f, key + "/sponsorpic")
+                        self.hdf5dir = self.get_string(f, key + "/hdf5dir")
                         
+                        print(list(f[key + "/relays"]))
                         for relay in list(f[key + "/relays"]):
-                            self.relays[relay] = f[key + "/relays/" + relay]
+                            self.relays[relay] = self.get_string(f, key + "/relays/" + relay)
                         
-                            
-                #print(list(f.keys()))
-                #print(f.values())
         except OSError:
             raise Exception("hdf5-file was not found")
-    def get_hdf5_data(self):
-        pass
+    def get_string(self, f, path):
+        dataset = f[path]
+        data = dataset[()]
+        if isinstance(data, bytes):
+            # Convert bytes to string
+            string_data = data.decode('utf-8')
+        else:
+        # If the dataset contains multiple strings or other data types, process accordingly
+        # Here we assume it contains multiple strings
+            string_data = [item.decode('utf-8') for item in data]
+
+        return string_data
+
     
     def create_import(self, path):
         with open(path + "\\" + self.competition_name.replace(" ", "_") + "_shooters.csv", "w", newline='') as csvfile:
