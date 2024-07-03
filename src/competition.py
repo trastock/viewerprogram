@@ -161,16 +161,17 @@ class competition():
                                  ";0;0;" + shooter.team + ";;" +  shooter.lane + ";" +
                                  shooter.relay + ";" + self.relays[shooter.relay] + 
                                  ";0;1;0;0"])
+    
     def create_startlist(self, path, relay):
         header = ["Tavla", "Namn", "Förening", "Klass"]
         table = []
         for shooter in self.shooters:
-            if shooter.relay == relay:
-                table.append([shooter.lane, shooter.firstname + " " +  shooter.lastname, 
-                              shooter.team, shooter.league])
+            if relay in shooter.relays.keys():
+                table.append([shooter.relays[relay]["lane"], shooter.firstname + " " +  shooter.lastname, 
+                              shooter.team, shooter.relays[relay]["league"]])
         make_pdf(table, header, self.competition_name, self.host
                  , self.date, "Startlista", "Skjutlag " + relay, 
-                 self.logopic, self.sponsorpic, path, self.relays[relay], 0)
+                 self.logopic, self.sponsorpic, path, self.relays[relay]["time"], 0)
         
 class issf_competition(competition):
     def __init__(self,

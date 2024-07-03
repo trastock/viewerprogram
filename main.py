@@ -10,13 +10,9 @@ if __name__ == "__main__":
     
     comp = src.competition("Dubbeltest Juli 2024", "20/7-2024", "Nyköpings Skyttegille", 
                            "FR60PR", "6", "20", logopic, sponsorpic, "competitions")
-    comp.add_relay("11:00")
-    comp.add_shooter("Emil", "Alakulju", "Nyköping")
-    comp.add_shooter("Erik", "Alakulju", "Nyköping")
+    comp.add_shooter("Emil", "Alakulju", "Nyköpings Skyttegille",)
+    comp.add_shooter("Erik", "Alakulju", "Södermalm och Liljeholmens Skytteförening")
     comp.add_shooter("Alexander", "Devell", "Nyköping")
-    
-    for shooter in comp.shooters:
-        print(shooter)
     
     comp.add_relay("10:00")
     comp.add_relay("12:00")
@@ -28,6 +24,8 @@ if __name__ == "__main__":
     comp.add_shooter_to_relay("102", "FR60PR", "HJ", "", "1")
     comp.add_shooter_to_relay("102", "FR60PR", "HJ", "", "2")
 
+    comp.create_startlist("test.pdf", "2")
+    print(comp.relays)
     
     
     #comp.export_to_hdf5()
