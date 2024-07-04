@@ -2,7 +2,7 @@ import src
 import numpy as np
 
 if __name__ == "__main__":
-    
+    """
     s = src.data_setup()
     data = {}
     logopic = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSMCeGz4Xab3Rxzhs8Hl3bBU9Iafs8FX4PIHg&s"
@@ -14,8 +14,8 @@ if __name__ == "__main__":
     comp.add_shooter("Erik", "Alakulju", "Södermalm och Liljeholmens Skytteförening")
     comp.add_shooter("Alexander", "Devell", "Nyköping")
     
-    comp.add_relay("10:00")
-    comp.add_relay("12:00")
+    comp.add_relay("10:00", "")
+    comp.add_relay("12:00", "")
     
     comp.add_shooter_to_relay("100", "FR60PR", "Herr", "", "1")
     comp.add_shooter_to_relay("100", "FR60PR", "Herr", "", "2")
@@ -25,14 +25,14 @@ if __name__ == "__main__":
     comp.add_shooter_to_relay("102", "FR60PR", "HJ", "", "2")
 
     comp.export_to_hdf5()
+    """
     
-    #comp.export_to_hdf5()
     
     
-    #comp = src.competition()
-    #   comp.import_from_hdf5(r"C:\Users\emila\OneDrive - Linköpings universitet\Desktop\Nya skytteprogrammet\viewerprogram\competitions\Dubbeltest Juli 2024_old.hdf5")
+    comp = src.competition()
+    comp.import_from_hdf5(r"C:\Users\emila\OneDrive - Linköpings universitet\Desktop\Nya skytteprogrammet\viewerprogram\competitions\Dubbeltest Juli 2024_old.hdf5")
     #   print("Test: ")
-    #   comp.export_to_hdf5()
+    comp.export_to_hdf5()
     
     """
     

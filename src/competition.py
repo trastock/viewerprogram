@@ -42,9 +42,10 @@ class competition():
         self.number_of_shooters = 0
     
     
-    def add_shooter(self, firstname, lastname, team):
+    def add_shooter(self, firstname, lastname, team, startnumber = ""):
         #number_of_shooters = self.get_number_of_shooters_in_relay(relay)
-        startnumber = str(self.number_of_shooters + 100)
+        if not startnumber:
+            startnumber = str(self.number_of_shooters + 100)
         #self.currentlane = (self.currentlane + 
                             #((-1)**(number_of_shooters + 1))*number_of_shooters)
         #self.shooters.append(shooter(firstname, lastname, league, team, result, 
@@ -79,9 +80,15 @@ class competition():
                 number_of_shooters += 1
         return number_of_shooters
     
-    def add_relay(self, time : str):
-        self.relays[str(len(self.relays) + 1)] = {"time": time,
-                                                  "current_lane": round(0.5*(int(self.lastlane) + int(self.firstlane)))}
+    def add_relay(self, time : str, relay_number):
+        if not relay_number:
+            self.relays[str(len(self.relays) + 1)] = {"time": time,
+                                                      "current_lane": round(0.5*(int(self.lastlane) + int(self.firstlane)))}
+        else:
+            self.relays[relay_number] = {"time": time,
+                                                      "current_lane": round(0.5*(int(self.lastlane) + int(self.firstlane)))}
+        
+ 
         #self.relays.append({len(self.relays) + 1: time})
     
     def export_to_hdf5(self):
@@ -97,7 +104,7 @@ class competition():
                 f.create_dataset("competition_info/relays/" + relay + "/time", 
                                  data = self.relays[relay]["time"])
                 f.create_dataset("competition_info/relays/" + relay + "/current_lane", 
-                                 data = self.relays[relay]["current_lane"])
+                                 data = str(self.relays[relay]["current_lane"]))
             f.create_dataset("competition_info/logopic", data = self.logopic)
             f.create_dataset("competition_info/sponsorpic", data = self.sponsorpic)           
             f.create_dataset("competition_info/hdf5dir", data = self.hdf5dir) 
@@ -106,12 +113,7 @@ class competition():
                 current_dir = shooter.startnumber
                 f.create_dataset((shooter.startnumber + "/first_name"), data = shooter.firstname)
                 f.create_dataset((shooter.startnumber + "/last_name"), data = shooter.lastname)
-                #f.create_dataset((shooter.startnumber + "/league"), data = shooter.league)
-                #f.create_dataset((shooter.startnumber + "/result"), data = shooter.result)
-                #f.create_dataset((shooter.startnumber + "/diciplin"), data = shooter.diciplin)
-                #f.create_dataset((shooter.startnumber + "/lane"), data = shooter.lane)
                 f.create_dataset((shooter.startnumber + "/startnumber"), data = shooter.startnumber)
-                #f.create_dataset((shooter.startnumber + "/relay"), data = shooter.relay)
                 f.create_dataset((shooter.startnumber + "/team"), data = shooter.team)
                 
                 for relay in shooter.relays:
@@ -119,11 +121,11 @@ class competition():
                     f.create_dataset((relay_dir + "/diciplin"), data = shooter.relays[relay]["dicipline"])
                     f.create_dataset((relay_dir + "/league"), data = shooter.relays[relay]["league"])
                     f.create_dataset((relay_dir + "/result"), data = shooter.relays[relay]["result"])
-                    f.create_dataset((relay_dir + "/lane"), data = shooter.relays[relay]["lane"])
+                    f.create_dataset((relay_dir + "/lane"), data = str(shooter.relays[relay]["lane"]))
                     for series in shooter.relays[relay]["series"]:
                         for shot in shooter.relays[relay]["series"][series]:
                             array = np.array(shooter.relays[relay]["series"][series][shot])
-                            f.create_dataset((relay_dir + "/" + series + "/" + shot).replace(" ", "_"), data = array)
+                            f.create_dataset((relay_dir + "/" + series + "/" + shot), data = array)
 
     def import_from_hdf5(self, path):
         try:
@@ -136,14 +138,41 @@ class competition():
                         self.diciplin = self.get_string(f, key + "/diciplin")
                         self.firstlane = self.get_string(f, key + "/firstlane")
                         self.lastlane = self.get_string(f, key + "/lastlane")
-                        self.currentlane = int(self.get_string(f, key + "/currentlane"))
+                        #self.currentlane = int(self.get_string(f, key + "/currentlane"))
                         self.logopic = self.get_string(f, key + "/logopic")
                         self.sponsorpic = self.get_string(f, key + "/sponsorpic")
                         self.hdf5dir = self.get_string(f, key + "/hdf5dir")
                         
-                        for relay in list(f[key + "/relays"]):
-                            self.relays[relay]["time"] = self.get_string(f, key + "/relays/" + relay + "/time")
-                            self.relays[relay]["current_lane"] = self.get_string(f, key + "/relays/" + relay + "/current_lane")
+                        for relay in list(f[key + "/relays"].keys()):
+                            self.add_relay(self.get_string(f, key + "/relays/" + relay + "/time"), relay)
+                            self.relays[relay]["current_lane"] = int(self.get_string(f, key + "/relays/" + relay + "/current_lane"))
+                    else:
+                        self.add_shooter(self.get_string(f, key + "/first_name"), 
+                                         self.get_string(f, key + "/last_name"),
+                                         self.get_string(f, key + "/team"), 
+                                         key) 
+                        for shooter in self.shooters:
+                                    if shooter.startnumber == key:
+                                        active_shooter = shooter
+                        
+                        for relay in list(f[key].keys()):
+                            try:
+                                int(relay)
+                                self.add_shooter_to_relay(key, 
+                                                        self.get_string(f, key + "/" + relay + "/diciplin"),
+                                                        self.get_string(f, key + "/" + relay + "/league"),
+                                                        self.get_string(f, key + "/" + relay + "/result"), 
+                                                        relay,
+                                                        self.get_string(f, key + "/" + relay + "/lane"))
+                                
+                                for series_key in list(f[key + "/" + relay].keys):
+                                    if "Series" in series_key:
+                                        for shot_key in list(f[key + "/" + relay + "/" + series_key].keys):
+                                            active_shooter.relays[relay]["series"][series_key][shot_key] =  f[key + "/" + relay + "/" + series_key + "/" + shot_key]
+                            except:
+                                print("Failed to load series")
+                        
+                        
                         
         except OSError:
             raise Exception("hdf5-file was not found")
