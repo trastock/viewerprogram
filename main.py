@@ -24,9 +24,7 @@ if __name__ == "__main__":
     comp.add_shooter_to_relay("102", "FR60PR", "HJ", "", "1")
     comp.add_shooter_to_relay("102", "FR60PR", "HJ", "", "2")
 
-    comp.create_startlist("test.pdf", "2")
-    print(comp.relays)
-    
+    comp.export_to_hdf5()
     
     #comp.export_to_hdf5()
     
