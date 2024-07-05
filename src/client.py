@@ -41,5 +41,6 @@ def update_data(s : socket.socket, outdata : dict):
                 break
         else: # if for loop completes without finding data_type, append to _REAMAIN
             outdata["_REAMAIN"].append(element.split(";"))
+    
     return outdata
 

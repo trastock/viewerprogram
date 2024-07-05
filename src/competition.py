@@ -176,6 +176,7 @@ class competition():
                         
         except OSError:
             raise Exception("hdf5-file was not found")
+    
     def get_string(self, f, path):
         dataset = f[path]
         data = dataset[()]
@@ -194,11 +195,12 @@ class competition():
         with open(path + "\\" + self.competition_name.replace(" ", "_") + "_shooters.csv", "w", newline='') as csvfile:
             writer = csv.writer(csvfile)
             for shooter in self.shooters:
-                writer.writerow([";" + shooter.startnumber + ";" + shooter.firstname + 
-                                 " " +  shooter.lastname + ";;;" + shooter.league + 
-                                 ";0;0;" + shooter.team + ";;" +  shooter.lane + ";" +
-                                 shooter.relay + ";" + self.relays[shooter.relay] + 
-                                 ";0;1;0;0"])
+                    for relay in shooter.relays:
+                        writer.writerow([";" + shooter.startnumber + relay + ";" + shooter.firstname + 
+                                        " " +  shooter.lastname + ";;;" + shooter.relays[relay]["league"] + 
+                                        ";0;0;" + shooter.team + ";;" +  str(shooter.relays[relay]["lane"]) + ";" +
+                                        relay + ";" + self.relays[relay]["time"] + 
+                                        ";0;1;0;0"])
     
     def create_startlist(self, path, relay):
         header = ["Tavla", "Namn", "Förening", "Klass"]
