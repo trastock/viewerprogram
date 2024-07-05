@@ -30,7 +30,7 @@ class competition():
         self.diciplin = diciplin
         self.firstlane = firstlane
         self.lastlane = lastlane
-        self.shooters = []
+        self.shooters = {}
         #if self.firstlane and self.lastlane:
          #   self.currentlane = round(0.5*(int(self.lastlane) + int(self.firstlane)))
         #else:
@@ -40,8 +40,9 @@ class competition():
         self.sponsorpic = sponsorpic
         self.hdf5dir = hdf5dir
         self.number_of_shooters = 0
-    
-    
+        self.raw_data = {}
+        self.raw_shots = [] 
+        self.raw_total = []
     def add_shooter(self, firstname, lastname, team, startnumber = ""):
         #number_of_shooters = self.get_number_of_shooters_in_relay(relay)
         if not startnumber:
@@ -50,7 +51,7 @@ class competition():
                             #((-1)**(number_of_shooters + 1))*number_of_shooters)
         #self.shooters.append(shooter(firstname, lastname, league, team, result, 
                                      #self.diciplin, str(self.currentlane), startnumber, relay))
-        self.shooters.append(shooter(firstname, lastname, team, startnumber))
+        self.shooters[startnumber] = shooter(firstname, lastname, team, startnumber)
         self.number_of_shooters +=1
  
     def add_shooter_to_relay(self, startnumber, diciplin, league, result, relay, lane = ""):
@@ -61,11 +62,10 @@ class competition():
             self.relays[relay]["current_lane"] = (self.relays[relay]["current_lane"] + 
                             ((-1)**(number_of_shooters + 1))*number_of_shooters)
             lane = self.relays[relay]["current_lane"]
-        for shooter in self.shooters:
-            if shooter.startnumber == startnumber:
-                shooter.add_relay(relay, diciplin, league, result, lane)
-    
-        
+        self.shooters[startnumber].add_relay(relay, diciplin, league, result, lane)
+        #for shooter in self.shooters:
+         #   if shooter.startnumber == startnumber:
+          #      shooter.add_relay(relay, diciplin, league, result, lane)
         
     """
     def add_shooter_and_lane(self, firstname, lastname, league, team, result, relay, lane):
@@ -75,7 +75,7 @@ class competition():
     """
     def get_number_of_shooters_in_relay(self, relay):
         number_of_shooters = 0
-        for shooter in self.shooters:
+        for shooter in self.shooters.values():
             if relay in shooter.relays.keys():
                 number_of_shooters += 1
         return number_of_shooters
@@ -109,7 +109,7 @@ class competition():
             f.create_dataset("competition_info/sponsorpic", data = self.sponsorpic)           
             f.create_dataset("competition_info/hdf5dir", data = self.hdf5dir) 
             
-            for shooter in self.shooters:
+            for shooter in self.shooters.values():
                 current_dir = shooter.startnumber
                 f.create_dataset((shooter.startnumber + "/first_name"), data = shooter.firstname)
                 f.create_dataset((shooter.startnumber + "/last_name"), data = shooter.lastname)
@@ -151,9 +151,10 @@ class competition():
                                          self.get_string(f, key + "/last_name"),
                                          self.get_string(f, key + "/team"), 
                                          key) 
-                        for shooter in self.shooters:
-                                    if shooter.startnumber == key:
-                                        active_shooter = shooter
+                        active_shooter = self.shooters[key]
+                        #for shooter in self.shooters:
+                         #           if shooter.startnumber == key:
+                          #              active_shooter = shooter
                         
                         for relay in list(f[key].keys()):
                             try:
@@ -191,28 +192,60 @@ class competition():
         return string_data
 
     
-    def create_import(self, path):
+    def create_import(self, path, keep_results):
         with open(path + "\\" + self.competition_name.replace(" ", "_") + "_shooters.csv", "w", newline='') as csvfile:
             writer = csv.writer(csvfile)
-            for shooter in self.shooters:
+            for shooter in self.shooters.values():
                     for relay in shooter.relays:
+                        if shooter.relays[relay]["result"] == "" or (not keep_results):
+                            result = "0"
                         writer.writerow([";" + shooter.startnumber + relay + ";" + shooter.firstname + 
                                         " " +  shooter.lastname + ";;;" + shooter.relays[relay]["league"] + 
                                         ";0;0;" + shooter.team + ";;" +  str(shooter.relays[relay]["lane"]) + ";" +
                                         relay + ";" + self.relays[relay]["time"] + 
-                                        ";0;1;0;0"])
+                                        ";0;1;" + result + ";0;0"])
     
     def create_startlist(self, path, relay):
         header = ["Tavla", "Namn", "Förening", "Klass"]
         table = []
-        for shooter in self.shooters:
+        for shooter in self.shooters.values():
             if relay in shooter.relays.keys():
                 table.append([shooter.relays[relay]["lane"], shooter.firstname + " " +  shooter.lastname, 
                               shooter.team, shooter.relays[relay]["league"]])
         make_pdf(table, header, self.competition_name, self.host
                  , self.date, "Startlista", "Skjutlag " + relay, 
                  self.logopic, self.sponsorpic, path, self.relays[relay]["time"], 0)
-        
+    
+    def update(self, raw_data):
+        if raw_data is not None:
+            self.raw_data = raw_data
+            for item in raw_data.keys():
+                if "SHOT" in item:
+                    for shot in raw_data[item]:
+                        if (shot not in self.raw_shots) and (len(shot) == 24):
+                            self.raw_shots.append(shot)
+                            startnumber = shot[3][:3]
+                            relay = shot[3][-1]
+                            self.shooters[startnumber].add_shot([shot[10], shot[11], shot[14], shot[15]], relay, shot[9], shot[13])
+                        else:
+                            print(shot)
+                elif "TOTL" in item:
+                    for total in raw_data[item]:
+                        if total not in self.raw_total:
+                            self.raw_total.append(total)
+                            
+#  title        lane  startn            time_of_shot                    hel  dec         nr    x              y
+['_SHOT', '11', '12', '1021', '60', '28', '18:12:35.80', '3', '1', '0', '9', '98', '0', '16', '0.00000000', '-0.00920000', '900', '0', '0', '655.35', '64832156', '65535', '0', '0']
+["b'_SHOT", '11', '12', '1021', '60', '29', '18:17:30.26', '3', '1', '0', '9', '97', '0', '17', '0.00707107', '-0.00707107', '900', '0', '0', '655.35', '64836156', '65535', '0', '0']
+["b'_SHOT", '11', '12', '1021', '60', '30', '18:19:06.68', '3', '1', '512', '10', '109', '0', '18', '0.00000000', '-0.00040000', '900', '0', '0', '655.35', '64840156', '65535', '0', '0']
+['_SHOT', '11', '12', '1021', '60', '32', '19:54:34.29', '3', '1', '0', '10', '105', '0', '20', '0.00360000', '0.00000000', '900', '0', '0', '655.35', '64848156', '65535', '0', '0']
+['_SHOT', '11', '12', '1021', '60', '35', '19:55:29.50', '3', '1', '512', '10', '109', '0', '21', '0.00028284', '-0.00028284', '900', '0', '0', '655.35', '64852156', '65535', '0', '0'], 
+['_SHOT', '11', '12', '1021', '60', '36', '19:55:30.47', '3', '1', '0', '10', '101', '0', '22', '-0.00480833', '-0.00480833', '900', '0', '0', '655.35', '64856156', '65535', '0', '0']
+#                                                                  prov? 
+['_SHOT', '12', '13', '1002', '60', '87', '20:09:25.39', '3', '1', '32', '9', '97', '0', '1', '-0.00707107', '0.00707107', '900', '0', '0', '655.35', '65012390', '65535', '0', '0']
+["b'_SHOT", '12', '13', '1002', '60', '88', '20:10:59.91', '3', '1', '32', '10', '104', '0', '2', '0.00000000', '-0.00440000', '900', '0', '0', '655.35', '65016390', '65535', '0', '0']
+
+
 class issf_competition(competition):
     def __init__(self,
                  competition_name : str = "",

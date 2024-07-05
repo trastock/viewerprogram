@@ -27,16 +27,23 @@ class shooter():
             series["Series " + str(i + 1)] = {}
             for j in range(int(seriesline[i])):
                 series["Series " + str(i + 1)]["Shot " + str(j + 1)] = []
-        series["Remaining"] = {}     
+        series["Remaining"] = {}
+        series["Excercise"] = {}
         return series
         
-    def add_shot(self, incoming_shot : list):
-        for serie in self.series:
-            for shot in self.series[serie]:
-                if not self.series[serie][shot]:
-                   self.series[serie][shot] = incoming_shot     
-                   break
-            break
+    def add_shot(self, incoming_shot : list, relay, excercise, nr):
+        if excercise == "32":
+            self.relays[relay]["series"]["Excercise"][nr] = incoming_shot
+            
+        else:
+            for serie in self.relays[relay]["series"].values():
+                if "Serie" in serie:
+                    for shot in self.series[serie]:
+                        if not self.series[serie][shot]:
+                            self.series[serie][shot] = incoming_shot    
+                            break
+            self.relays[relay]["series"]["Remaining"][nr] = incoming_shot
+                
     
     def add_relay(self, relaynumber, diciplin, league, result, lane):
         self.relays[relaynumber] = {"series": self.get_series(diciplin),
