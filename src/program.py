@@ -31,8 +31,14 @@ class Program():
             data = update_data(self.s, self.competition.raw_data)
             if data:
                 self.competition.update(data)
-                #print(self.competition.shooters["100"].relays["1"])
+                print(self.competition.shooters["100"].relays["1"]["series"])
+                #for total in self.competition.raw_data["_TOTL"]:
+                #    print(len(total))
+                #print(self.competition.raw_data["_TOTL"])
                 #print(self.competition.raw_data["_SHOT"])
+                #for shot in self.competition.raw_data["_SHOT"]:
+                #    if len(shot) == 24:
+                #        print(shot[9])
                 
                 if self.last_update_remain:
                     old_shot = self.competition.raw_data["_SHOT"].pop(self.last_update_shot)

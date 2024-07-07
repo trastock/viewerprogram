@@ -120,7 +120,7 @@ class competition():
                     relay_dir = current_dir + "/" + relay
                     f.create_dataset((relay_dir + "/diciplin"), data = shooter.relays[relay]["dicipline"])
                     f.create_dataset((relay_dir + "/league"), data = shooter.relays[relay]["league"])
-                    f.create_dataset((relay_dir + "/result"), data = shooter.relays[relay]["result"])
+                    f.create_dataset((relay_dir + "/result"), data = str(shooter.relays[relay]["result"]))
                     f.create_dataset((relay_dir + "/lane"), data = str(shooter.relays[relay]["lane"]))
                     for series in shooter.relays[relay]["series"]:
                         for shot in shooter.relays[relay]["series"][series]:
@@ -162,7 +162,7 @@ class competition():
                                 self.add_shooter_to_relay(key, 
                                                         self.get_string(f, key + "/" + relay + "/diciplin"),
                                                         self.get_string(f, key + "/" + relay + "/league"),
-                                                        self.get_string(f, key + "/" + relay + "/result"), 
+                                                        float(self.get_string(f, key + "/" + relay + "/result")), 
                                                         relay,
                                                         self.get_string(f, key + "/" + relay + "/lane"))
                                 
@@ -222,11 +222,13 @@ class competition():
             for item in raw_data.keys():
                 if "SHOT" in item:
                     for shot in raw_data[item]:
-                        if (shot not in self.raw_shots) and (len(shot) == 24):
+                        if len(shot) != 24:
+                            break
+                        elif (shot not in self.raw_shots) and (len(shot) == 24):
                             self.raw_shots.append(shot)
                             startnumber = shot[3][:3]
                             relay = shot[3][-1]
-                            self.shooters[startnumber].add_shot([shot[10], shot[11], shot[14], shot[15]], relay, shot[9], shot[13])
+                            self.shooters[startnumber].add_shot([int(shot[10]), float(shot[11])/10, float(shot[14]), float(shot[15])], relay, shot[9], shot[13])
                 elif "TOTL" in item:
                     for total in raw_data[item]:
                         if total not in self.raw_total:
