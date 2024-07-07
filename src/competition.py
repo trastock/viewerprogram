@@ -227,8 +227,6 @@ class competition():
                             startnumber = shot[3][:3]
                             relay = shot[3][-1]
                             self.shooters[startnumber].add_shot([shot[10], shot[11], shot[14], shot[15]], relay, shot[9], shot[13])
-                        else:
-                            print(shot)
                 elif "TOTL" in item:
                     for total in raw_data[item]:
                         if total not in self.raw_total:
