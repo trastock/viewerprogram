@@ -26,8 +26,10 @@ class shooter():
         seriesline.pop(0)
         if seriesline.pop(0) == "dec":
             self.dec = 1
+        self.innerten = float(seriesline.pop(0))
+        self.caliber = float(seriesline.pop(0))
         for i in range(len(seriesline)):
-            series["Series " + str(i + 1)] = {"Tot": 0}
+            series["Series " + str(i + 1)] = {"Tot": 0, "Inner tens": 0}
             for j in range(int(seriesline[i])):
                 series["Series " + str(i + 1)]["Shot " + str(j + 1)] = []
         series["Remaining"] = {}
@@ -49,8 +51,13 @@ class shooter():
                                 self.relays[relay]["result"] += incoming_shot[self.dec]
                                 self.relays[relay]["result"] = round(self.relays[relay]["result"], 1)
                                 
+                                self.relays[relay]["series"][serie]["Inner tens"] += incoming_shot[4]
+                                self.relays[relay]["inner tens"] += incoming_shot[4]
+                                
                                 self.relays[relay]["series"][serie]["Tot"] += incoming_shot[self.dec]
                                 self.relays[relay]["series"][serie]["Tot"] = round(self.relays[relay]["series"][serie]["Tot"], 1)
+                                
+                                
                                 find = True
                                 break
                     if find:
@@ -59,12 +66,20 @@ class shooter():
                 self.relays[relay]["series"]["Remaining"][nr] = incoming_shot
                 
     
-    def add_relay(self, relaynumber, diciplin, league, result, lane):
+    def add_relay(self, relaynumber, diciplin, league, result, inner_tens, lane):
         self.relays[relaynumber] = {"series": self.get_series(diciplin),
                                     "dicipline": diciplin,
                                     "league": league,
                                     "result": result,
+                                    "inner tens": inner_tens,
                                     "lane": lane}
+    
+    def check_if_innerten(self, x, y):
+        distance = abs((x**2 + y**2)**0.5 - (self.caliber/2))
+        if distance < self.innerten:
+            return 1
+        else:
+            return 0
     
     def __str__(self):
         return self.startnumber

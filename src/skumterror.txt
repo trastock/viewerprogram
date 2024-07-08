@@ -1,0 +1,9 @@
+PS C:\Users\emila\OneDrive - Linköpings universitet\Desktop\Nya skytteprogrammet\viewerprogram> python .\main.py
+Traceback (most recent call last):
+  File "C:\Users\emila\OneDrive - Linköpings universitet\Desktop\Nya skytteprogrammet\viewerprogram\main.py", line 41, in <module>
+    if not prog.update_competitions():
+  File "C:\Users\emila\OneDrive - Linköpings universitet\Desktop\Nya skytteprogrammet\viewerprogram\src\program.py", line 35, in update_competitions
+    self.competition.update(data)
+  File "C:\Users\emila\OneDrive - Linköpings universitet\Desktop\Nya skytteprogrammet\viewerprogram\src\competition.py", line 233, in update
+    relay = shot[3][-1]
+IndexError: string index out of range

@@ -54,7 +54,7 @@ class competition():
         self.shooters[startnumber] = shooter(firstname, lastname, team, startnumber)
         self.number_of_shooters +=1
  
-    def add_shooter_to_relay(self, startnumber, diciplin, league, result, relay, lane = ""):
+    def add_shooter_to_relay(self, startnumber, diciplin, league, result, inner_tens, relay, lane = ""):
         number_of_shooters = self.get_number_of_shooters_in_relay(relay)
         if not lane:
             #self.currentlane = (self.currentlane + 
@@ -62,7 +62,7 @@ class competition():
             self.relays[relay]["current_lane"] = (self.relays[relay]["current_lane"] + 
                             ((-1)**(number_of_shooters + 1))*number_of_shooters)
             lane = self.relays[relay]["current_lane"]
-        self.shooters[startnumber].add_relay(relay, diciplin, league, result, lane)
+        self.shooters[startnumber].add_relay(relay, diciplin, league, result, inner_tens, lane)
         #for shooter in self.shooters:
          #   if shooter.startnumber == startnumber:
           #      shooter.add_relay(relay, diciplin, league, result, lane)
@@ -122,6 +122,7 @@ class competition():
                     f.create_dataset((relay_dir + "/league"), data = shooter.relays[relay]["league"])
                     f.create_dataset((relay_dir + "/result"), data = str(shooter.relays[relay]["result"]))
                     f.create_dataset((relay_dir + "/lane"), data = str(shooter.relays[relay]["lane"]))
+                    f.create_dataset((relay_dir + "/inner tens"), data = str(shooter.relays[relay]["inner tens"]))
                     for series in shooter.relays[relay]["series"]:
                         for shot in shooter.relays[relay]["series"][series]:
                             array = np.array(shooter.relays[relay]["series"][series][shot])
@@ -222,13 +223,24 @@ class competition():
             for item in raw_data.keys():
                 if "SHOT" in item:
                     for shot in raw_data[item]:
-                        if len(shot) != 24:
+                        print(len(shot))
+                        if len(shot) < 24:
                             break
                         elif (shot not in self.raw_shots) and (len(shot) == 24):
                             self.raw_shots.append(shot)
                             startnumber = shot[3][:3]
                             relay = shot[3][-1]
-                            self.shooters[startnumber].add_shot([int(shot[10]), float(shot[11])/10, float(shot[14]), float(shot[15])], relay, shot[9], shot[13])
+                            try:
+                                self.shooters[startnumber].add_shot([int(shot[10]), float(shot[11])/10, 
+                                                                    float(shot[14]), float(shot[15]), 
+                                                                    self.shooters[startnumber].check_if_innerten(float(shot[14]), float(shot[15]))], 
+                                                                    relay, shot[9], shot[13])
+                                
+                            except Exception as e:
+                                self.raw_shots.pop(-1)
+                                print(f"Något gick fel: {e}")
+                                #print(shot)
+                                
                 elif "TOTL" in item:
                     for total in raw_data[item]:
                         if total not in self.raw_total:
