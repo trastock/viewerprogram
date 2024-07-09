@@ -14,8 +14,8 @@ class Program():
         self.last_update_shot = 0
         self.last_update_remain = 0
     
-    def create_competition(self, name, date, host, diciplin, first_lane,
-                           last_lane, logo_pic, sponsor_pic, hdf5_dir):
+    def create_competition(self, name = "", date = "", host = "", diciplin = "", first_lane = "", 
+                           last_lane = "", logo_pic = "", sponsor_pic = "", hdf5_dir = ""):
         self.competition = competition(name, date, host, diciplin, 
                                                           first_lane, last_lane, logo_pic,
                                                           sponsor_pic, hdf5_dir)

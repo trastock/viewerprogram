@@ -10,6 +10,7 @@ if __name__ == "__main__":
     sponsorpic = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSvI9l2PnRlWMs5wbvUc-HDNSE7FXth9p83Rg&s"
     
     prog = src.Program()
+    """
     prog.create_competition("Dubbeltest Juli 2024", "20/7-2024", "Nyköpings Skyttegille", 
                            "FR60PR", "6", "20", logopic, sponsorpic, "competitions")
     
@@ -26,7 +27,11 @@ if __name__ == "__main__":
     prog.competition.add_shooter_to_relay("102", "FR60PR", "HJ", 0, 0, "2")
     prog.competition.create_import(r"C:\Sius\SiusData", False)
     prog.setup_socket()
-    
+    """
+    prog.create_competition()
+    prog.competition.import_from_hdf5(r"C:\Users\emila\OneDrive - Linköpings universitet\Desktop\Nya skytteprogrammet\viewerprogram\competitions\Koxängtest.hdf5")
+    prog.competition.export_to_hdf5()
+    prog.competition.create_result("restest.pdf", "relay", "1")    
     
     #comp = src.competition()
     #comp.import_from_hdf5(r"C:\Users\emila\OneDrive - Linköpings universitet\Desktop\Nya skytteprogrammet\viewerprogram\competitions\Dubbeltest Juli 2024_old.hdf5")
@@ -35,7 +40,7 @@ if __name__ == "__main__":
     
     
     
-    
+    """
     try:
         while True:
             if not prog.update_competitions():
@@ -47,5 +52,6 @@ if __name__ == "__main__":
             
     except KeyboardInterrupt:
         print("Program stopped by user.")
+    """
     
     

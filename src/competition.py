@@ -163,16 +163,19 @@ class competition():
                                 self.add_shooter_to_relay(key, 
                                                         self.get_string(f, key + "/" + relay + "/diciplin"),
                                                         self.get_string(f, key + "/" + relay + "/league"),
-                                                        float(self.get_string(f, key + "/" + relay + "/result")), 
+                                                        float(self.get_string(f, key + "/" + relay + "/result")),
+                                                        int(self.get_string(f, key + "/" + relay + "/inner tens")),
                                                         relay,
                                                         self.get_string(f, key + "/" + relay + "/lane"))
-                                
-                                for series_key in list(f[key + "/" + relay].keys):
-                                    if "Series" in series_key:
-                                        for shot_key in list(f[key + "/" + relay + "/" + series_key].keys):
-                                            active_shooter.relays[relay]["series"][series_key][shot_key] =  f[key + "/" + relay + "/" + series_key + "/" + shot_key]
-                            except:
-                                print("Failed to load series")
+                                for series_key in list(f[key + "/" + relay].keys()):
+                                    if type(f[key + "/" + relay + "/" + series_key]) == h5py._hl.group.Group:
+                                        for shot_key in list(f[key + "/" + relay + "/" + series_key].keys()):
+                                            if type(f[key + "/" + relay + "/" + series_key + "/" + shot_key]) == h5py._hl.dataset.Dataset:
+                                                array = np.array(f[key + "/" + relay + "/" + series_key + "/" + shot_key])
+                                                active_shooter.relays[relay]["series"][series_key][shot_key] =  array.tolist()
+                            except Exception as e:
+                                pass
+                                #print("Failed to load series: " + str(e))
                         
                         
                         
@@ -216,6 +219,28 @@ class competition():
         make_pdf(table, header, self.competition_name, self.host
                  , self.date, "Startlista", "Skjutlag " + relay, 
                  self.logopic, self.sponsorpic, path, self.relays[relay]["time"], 0)
+    
+    def create_result(self, path, result_type, type_content):
+        if result_type == "relay":
+            header = ["Tavla", "Namn", "Förening", "Klass", "TOT", "Anm"]
+            table = []
+            for shooter in self.shooters.values():
+                if type_content in shooter.relays.keys():
+                    serie_part = []
+                    for serie in shooter.relays[type_content]["series"]:
+                        if "Serie" in serie:
+                            if serie not in header:
+                                header.insert(-3, serie)
+                            serie_part.append(shooter.relays[type_content]["series"][serie]["Tot"])
+                    table.append([shooter.relays[type_content]["lane"], shooter.firstname + " " +  shooter.lastname, 
+                                  shooter.team, shooter.relays[type_content]["league"]] + serie_part +
+                                 [str(shooter.relays[type_content]["result"]) + "-" + str(shooter.relays[type_content]["inner tens"]) + "*",  
+                                  "Anm"])
+            make_pdf(table, header, self.competition_name, self.host
+                 , self.date, "Resultat", "Skjutlag " + type_content, 
+                 self.logopic, self.sponsorpic, path, self.relays[type_content]["time"], 0)
+                
+        
     
     def update(self, raw_data):
         if raw_data is not None:

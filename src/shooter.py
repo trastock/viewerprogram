@@ -39,7 +39,10 @@ class shooter():
     def add_shot(self, incoming_shot : list, relay, excercise, nr):
         print(excercise)
         if excercise == "32" or excercise == "544" or excercise == "551" or excercise == "39" or excercise == "35":
-            self.relays[relay]["series"]["Excercise"][nr] = incoming_shot
+            if nr in self.relays[relay]["series"]["Excercise"].keys():
+                self.relays[relay]["series"]["Excercise 2"][nr] = incoming_shot
+            else:
+                self.relays[relay]["series"]["Excercise"][nr] = incoming_shot
             
         else:
             for serie in self.relays[relay]["series"].keys():
@@ -58,14 +61,12 @@ class shooter():
                                 self.relays[relay]["series"][serie]["Tot"] += incoming_shot[self.dec]
                                 self.relays[relay]["series"][serie]["Tot"] = round(self.relays[relay]["series"][serie]["Tot"], 1)
                                 
-                                
                                 find = True
                                 break
                     if find:
                         break
             else:
                 self.relays[relay]["series"]["Remaining"][nr] = incoming_shot
-                
     
     def add_relay(self, relaynumber, diciplin, league, result, inner_tens, lane):
         self.relays[relaynumber] = {"series": self.get_series(diciplin),
