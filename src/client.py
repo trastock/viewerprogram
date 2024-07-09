@@ -43,7 +43,7 @@ def update_data(s : socket.socket, outdata : dict):
                         outdata["_REAMAIN"].append(element.split(";"))
                 return outdata
             else:
-                print("Timeout")
+                #print("Timeout")
                 return None
     except Exception as e:
         print(f"An error occurred while reading from socket {e}")

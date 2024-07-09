@@ -37,7 +37,8 @@ class shooter():
         return series
         
     def add_shot(self, incoming_shot : list, relay, excercise, nr):
-        if excercise == "32" or excercise == "544":
+        print(excercise)
+        if excercise == "32" or excercise == "544" or excercise == "551" or excercise == "39" or excercise == "35":
             self.relays[relay]["series"]["Excercise"][nr] = incoming_shot
             
         else:

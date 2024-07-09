@@ -223,28 +223,35 @@ class competition():
             for item in raw_data.keys():
                 if "SHOT" in item:
                     for shot in raw_data[item]:
-                        print(len(shot))
+                        #print(len(shot))
                         if len(shot) < 24:
                             break
                         elif (shot not in self.raw_shots) and (len(shot) == 24):
                             self.raw_shots.append(shot)
                             startnumber = shot[3][:3]
                             relay = shot[3][-1]
-                            try:
-                                self.shooters[startnumber].add_shot([int(shot[10]), float(shot[11])/10, 
-                                                                    float(shot[14]), float(shot[15]), 
-                                                                    self.shooters[startnumber].check_if_innerten(float(shot[14]), float(shot[15]))], 
-                                                                    relay, shot[9], shot[13])
+                            
+                            if startnumber in self.shooters.keys():
+                                try:
+                                    self.shooters[startnumber].add_shot([int(shot[10]), float(shot[11])/10, 
+                                                                        float(shot[14]), float(shot[15]), 
+                                                                        self.shooters[startnumber].check_if_innerten(float(shot[14]), float(shot[15]))], 
+                                                                        relay, shot[9], shot[13])
+                                    print(f"Nytt skott: {float(shot[11])/10}")
+                                    #print(shot[9])
                                 
-                            except Exception as e:
-                                self.raw_shots.pop(-1)
-                                print(f"Något gick fel: {e}")
-                                #print(shot)
                                 
+                                except Exception as e:
+                                    self.raw_shots.pop(-1)
+                                    #return False
+                                    #print(f"Något gick fel: {e}")
+                                    #print(shot)
+                """           
                 elif "TOTL" in item:
                     for total in raw_data[item]:
                         if total not in self.raw_total:
                             self.raw_total.append(total)
+                """
                             
 #  title        lane  startn            time_of_shot                    hel  dec         nr    x              y
 ['_SHOT', '11', '12', '1021', '60', '28', '18:12:35.80', '3', '1', '0', '9', '98', '0', '16', '0.00000000', '-0.00920000', '900', '0', '0', '655.35', '64832156', '65535', '0', '0']

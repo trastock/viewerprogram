@@ -39,7 +39,10 @@ if __name__ == "__main__":
     try:
         while True:
             if not prog.update_competitions():
-                input("\nType Ctrl+C to exit. Press Enter to continue...")
+                #print("Nytt skott!")
+                print(f"Resultat: {str(prog.competition.shooters["100"].relays["1"]["result"])} - {str(prog.competition.shooters["100"].relays["1"]["inner tens"])} *")
+                print(f"Raw_shots\n {prog.competition.raw_shots}")
+                #input("\nType Ctrl+C to exit. Press Enter to continue...")
             #prog.update_competitions()
             
     except KeyboardInterrupt:
