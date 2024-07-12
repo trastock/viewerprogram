@@ -174,9 +174,8 @@ class competition():
                                                 array = np.array(f[key + "/" + relay + "/" + series_key + "/" + shot_key])
                                                 active_shooter.relays[relay]["series"][series_key][shot_key] =  array.tolist()
                             except Exception as e:
-                                pass
                                 #print("Failed to load series: " + str(e))
-                        
+                                pass 
                         
                         
         except OSError:

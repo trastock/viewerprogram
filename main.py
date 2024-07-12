@@ -2,10 +2,6 @@ import src
 import numpy as np
 
 if __name__ == "__main__":
-    
-    
-    
-    
     logopic = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSMCeGz4Xab3Rxzhs8Hl3bBU9Iafs8FX4PIHg&s"
     sponsorpic = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSvI9l2PnRlWMs5wbvUc-HDNSE7FXth9p83Rg&s"
     
@@ -29,15 +25,24 @@ if __name__ == "__main__":
     prog.setup_socket()
     """
     prog.create_competition()
-    prog.competition.import_from_hdf5(r"C:\Users\emila\OneDrive - Linköpings universitet\Desktop\Nya skytteprogrammet\viewerprogram\competitions\Koxängtest.hdf5")
-    prog.competition.export_to_hdf5()
-    prog.competition.create_result("restest.pdf", "relay", "1")    
+    #prog.competition.import_from_hdf5(r"/home/emil/privata_proj/viewerprogram/competitions/Koxängtest.hdf5")
+    #prog.competition.export_to_hdf5()
+    #prog.competition.create_result("restest.pdf", "relay", "1")    
     
     #comp = src.competition()
     #comp.import_from_hdf5(r"C:\Users\emila\OneDrive - Linköpings universitet\Desktop\Nya skytteprogrammet\viewerprogram\competitions\Dubbeltest Juli 2024_old.hdf5")
     #   print("Test: ")
     #comp.export_to_hdf5()
     
+    
+    while True:
+        prog.competition.import_from_hdf5("competitions/Koxängtest.hdf5")
+        prog.competition.export_to_hdf5()
+        for shooter in prog.competition.shooters.values(): 
+            src.plot(shooter.relays["1"]["series"][shooter.active_serie])
+        
+        input("\nType Ctrl+C to exit. Press Enter to continue...")
+        
     
     
     """
