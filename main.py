@@ -1,11 +1,45 @@
 import src
 import numpy as np
 
+from PyQt6.QtWidgets import QWidget, QApplication, QVBoxLayout
+import sys
+
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
+from matplotlib.figure import Figure
+
+
+class My_Window(QWidget):
+    def __init__(self, prog):
+        super().__init__()
+        self.layout = QVBoxLayout(self)
+        self.canvas = None
+        self.prog = prog
+        self.update_canvas()  # Update canvas when initializing the window
+        
+    
+    def update_canvas(self):
+        
+        prog.competition.import_from_hdf5("competitions/Koxängtest.hdf5")
+        
+        #print(self.prog.competition.shooters["100"])
+        fig, ax = src.plot(self.prog.competition.shooters["100"].relays["1"]["series"][self.prog.competition.shooters["100"].active_serie])
+        if self.canvas is None:
+            self.canvas  = FigureCanvasQTAgg(fig)
+            self.layout.addWidget(self.canvas)
+        else:
+            self.layout.addWidget(self.canvas)
+            self.canvas.draw()
+        
+        
+
+
+
 if __name__ == "__main__":
     logopic = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSMCeGz4Xab3Rxzhs8Hl3bBU9Iafs8FX4PIHg&s"
     sponsorpic = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSvI9l2PnRlWMs5wbvUc-HDNSE7FXth9p83Rg&s"
     
     prog = src.Program()
+    
     """
     prog.create_competition("Dubbeltest Juli 2024", "20/7-2024", "Nyköpings Skyttegille", 
                            "FR60PR", "6", "20", logopic, sponsorpic, "competitions")
@@ -33,16 +67,27 @@ if __name__ == "__main__":
     #comp.import_from_hdf5(r"C:\Users\emila\OneDrive - Linköpings universitet\Desktop\Nya skytteprogrammet\viewerprogram\competitions\Dubbeltest Juli 2024_old.hdf5")
     #   print("Test: ")
     #comp.export_to_hdf5()
+
     
+    app = QApplication(sys.argv)
+    window = My_Window(prog)
+    window.show()
+    #prog.competition.shooters["100"]["1"]["series"][prog.competition.shooters["100"].active_serie]
+    
+    #window.update_canvas()
+    sys.exit(app.exec())
     
     while True:
         prog.competition.import_from_hdf5("competitions/Koxängtest.hdf5")
-        prog.competition.export_to_hdf5()
+        #prog.competition.export_to_hdf5()
         for shooter in prog.competition.shooters.values(): 
-            src.plot(shooter.relays["1"]["series"][shooter.active_serie])
+            fig, ax = src.plot(shooter.relays["1"]["series"][shooter.active_serie])
+            
+            window.canvas = FigureCanvasQTAgg(fig)
         
         input("\nType Ctrl+C to exit. Press Enter to continue...")
         
+        sys.exit(app.exec_())
     
     
     """
