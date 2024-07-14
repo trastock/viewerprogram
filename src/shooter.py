@@ -14,11 +14,12 @@ class shooter():
         self.startnumber = startnumber
         self.relays = {}
         self.dec = 0
+        self.active_serie = "Excercise"
 
     def get_series(self, diciplin):
         seriesline = ""
         series = {}
-        with open("recourses\diciplins.csv", mode="r") as f:
+        with open("recourses/diciplins.csv", mode="r") as f:
             csvfile = csv.reader(f)
             for line in csvfile:
                 if diciplin in line:
@@ -39,10 +40,25 @@ class shooter():
     def add_shot(self, incoming_shot : list, relay, excercise, nr):
         print(excercise)
         if excercise == "32" or excercise == "544" or excercise == "551" or excercise == "39" or excercise == "35":
-            if nr in self.relays[relay]["series"]["Excercise"].keys():
-                self.relays[relay]["series"]["Excercise 2"][nr] = incoming_shot
-            else:
+            if not nr in self.relays[relay]["series"]["Excercise"].keys():
                 self.relays[relay]["series"]["Excercise"][nr] = incoming_shot
+                self.active_series = "Excercise"
+            else:
+                try:
+                    if not nr in self.relays[relay]["series"]["Excercise 2"].keys():    
+                        self.relays[relay]["series"]["Excercise 2"][nr] = incoming_shot
+                        self.active_serie = "Excercise 2"
+                    else:
+                        try: 
+                            if not nr in self.relays[relay]["series"]["Excercise 3"].keys():
+                                self.relays[relay]["series"]["Excercise 3"][nr] = incoming_shot
+                                self.active_serie = "Excercise 3"
+                        except:
+                            self.relays[relay]["series"]["Excercise 3"][nr] = incoming_shot
+                            self.active_serie = "Excercise 3"
+                except:
+                    self.relays[relay]["series"]["Excercise 2"][nr] = incoming_shot
+                    self.active_serie = "Excercise 2"
             
         else:
             for serie in self.relays[relay]["series"].keys():
@@ -62,11 +78,13 @@ class shooter():
                                 self.relays[relay]["series"][serie]["Tot"] = round(self.relays[relay]["series"][serie]["Tot"], 1)
                                 
                                 find = True
+                                self.active_serie = serie
                                 break
                     if find:
                         break
             else:
                 self.relays[relay]["series"]["Remaining"][nr] = incoming_shot
+                self.active_serie = "Remaining"
     
     def add_relay(self, relaynumber, diciplin, league, result, inner_tens, lane):
         self.relays[relaynumber] = {"series": self.get_series(diciplin),
