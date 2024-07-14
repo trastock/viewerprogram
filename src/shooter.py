@@ -19,7 +19,7 @@ class shooter():
     def get_series(self, diciplin):
         seriesline = ""
         series = {}
-        with open("recourses/diciplins.csv", mode="r") as f:
+        with open("recourses\\diciplins.csv", mode="r") as f:
             csvfile = csv.reader(f)
             for line in csvfile:
                 if diciplin in line:

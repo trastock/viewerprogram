@@ -12,10 +12,12 @@ def plot(data):
     #area = np.pi * r**2
     
     for shot in data:
-        if shot != "Inner tens" or shot != "Tot":
-            x_points.append(data[shot][2])
-            y_points.append(data[shot][3])
-            nr.append(int(''.join(i for i in shot if i.isdigit())))
+        #print("Skott:", type(data[shot]))
+        if type(data[shot]) == list:
+            if len(data[shot]) == 5:
+                x_points.append(data[shot][2])
+                y_points.append(data[shot][3])
+                nr.append(int(''.join(i for i in shot if i.isdigit())))
     x = sort_list(x_points, nr)
     y = sort_list(y_points, nr)
     nr.sort()
@@ -26,31 +28,6 @@ def plot(data):
     
     radii = np.ones(x.shape)*0.0056/2
     
-    """
-    min_x = np.min(x_points)
-    max_x = np.max(x_points)
-    if abs(min_x) > max_x:
-        max_x = abs(min_x)
-    
-    min_y = np.min(y_points)
-    max_y = np.max(y_points)
-    if abs(min_y) > max_y:
-        max_y = abs(min_y)
-    
-    max_x += 0.0056
-    max_y += 0.0056
-    
-    plt.xlim(-max_x, max_x)
-    plt.ylim(-max_y, max_y)
-    
-    
-    y_points = np.array(y_points)
-    
-    
-    plt.scatter(x_points, y_points, s=area)
-    plt.show()
-    
-    """
     # Calculate radius and theta for polar coordinates
     r = np.sqrt(x**2 + y**2)
     theta = np.arctan2(y, x)
@@ -59,7 +36,7 @@ def plot(data):
     dot_radius = 20  # example radius in points
 
     # Create the polar plot
-    fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+    fig, ax = plt.subplots(subplot_kw={'projection': 'polar'}, figsize=(6,6))
 
     
     # Set the radius limits to center the plot around (0,0)
@@ -117,7 +94,6 @@ def plot(data):
     
 
     return fig, ax
-    plt.show()
 
 def sort_list(list1, list2):
  

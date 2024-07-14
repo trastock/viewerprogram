@@ -261,7 +261,7 @@ class competition():
                                                                         float(shot[14]), float(shot[15]), 
                                                                         self.shooters[startnumber].check_if_innerten(float(shot[14]), float(shot[15]))], 
                                                                         relay, shot[9], shot[13])
-                                    print(f"Nytt skott: {float(shot[11])/10}")
+                                    #print(f"Nytt skott: {float(shot[11])/10}")
                                     #print(shot[9])
                                 
                                 

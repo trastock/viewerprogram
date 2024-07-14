@@ -28,10 +28,25 @@ class Program():
     
     def update_competitions(self):
         if self.s:
-            old_data = self.competition.raw_data
-            data = update_data(self.s, old_data)
+            data = self.competition.raw_data
+            old_data = copy.deepcopy(data)
+            #print(old_data)
+            data = update_data(self.s, data)
+            
             if data:
-                #print(data["_SHOT"])
+                flag = True
+                if not "_SHOT" in old_data.keys():
+                    print("5")
+                    if not "_SHOT" in data.keys():
+                        return False
+                    flag = False
+                print(flag)
+                if flag:
+                    print("4")
+                    if len(old_data["_SHOT"]) == len(data["_SHOT"]):
+                        print("3")
+                        return False
+                
                 self.competition.update(data)
                 #print(self.competition.shooters["100"].relays["1"]["series"])
                 #for total in self.competition.raw_data["_TOTL"]:
@@ -71,5 +86,8 @@ class Program():
                 self.competition.export_to_hdf5()
                 return True
             else:
+                print("8")
                 return False
+        else:
+            return False
                 

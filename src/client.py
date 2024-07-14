@@ -30,7 +30,7 @@ def update_data(s : socket.socket, outdata : dict):
             outdata[data_type] = []
     try:
         while True:
-            ready_to_read, ready_to_write, in_error = select.select([s], [], [], 2)
+            ready_to_read, ready_to_write, in_error = select.select([s], [], [], 0.1)
             if ready_to_read: 
                 data = repr(s.recv(1024))
                 lst = data.split("\\r\\n")
