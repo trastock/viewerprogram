@@ -1,8 +1,11 @@
 from matplotlib import pyplot as plt
 from matplotlib.patches import Circle
+from matplotlib.figure import Figure
+import matplotlib.gridspec as gridspec
+
 import numpy as np
 
-def plot(data):
+def plot(data, score_dict):
     
     x_points = []
     y_points = []
@@ -10,19 +13,25 @@ def plot(data):
     
     #r = 20
     #area = np.pi * r**2
+    shot_scores = []
     
+    score_text = ""
     for shot in data:
         #print("Skott:", type(data[shot]))
         if type(data[shot]) == list:
             if len(data[shot]) == 5:
                 x_points.append(data[shot][2])
                 y_points.append(data[shot][3])
+                shot_scores.append([data[shot][0], data[shot][1]])
                 nr.append(int(''.join(i for i in shot if i.isdigit())))
     x = sort_list(x_points, nr)
     y = sort_list(y_points, nr)
+    shot_scores = sort_list(shot_scores, nr)
     nr.sort()
-    
-    
+    """
+    for i, shot in enumerate(shot_scores):
+        score_text += str(nr[i]) + ": " + str(shot[0]) + "\n"
+    """
     x = np.array(x_points)
     y = np.array(y_points)
     
@@ -36,14 +45,20 @@ def plot(data):
     dot_radius = 20  # example radius in points
 
     # Create the polar plot
-    fig, ax = plt.subplots(subplot_kw={'projection': 'polar'}, figsize=(6,6))
+    fig = Figure()
+    gs = gridspec.GridSpec(1, 2, width_ratios=[4, 1])  # Create a grid with 2 columns
+
+    ax = fig.add_subplot(gs[0], polar = True)
+
+    #fig, ax = plt.subplots(subplot_kw={'projection': 'polar'}, figsize=(6,6))
 
     
     # Set the radius limits to center the plot around (0,0)
+
     try:
         ax.set_ylim(0, np.max(r) + 0.0056)  # Adjust the limit as necessary
     except:
-        pass
+        ax.set_ylim(0, 0.1544/2 + 0.0056)  # Adjust the limit as necessary
     # Customize angular ticks to show only at 0, 90, 180, and 270 degrees
     ax.set_xticks([])
     ax.set_xticklabels([])  # Optionally, you can set custom labels
@@ -64,7 +79,7 @@ def plot(data):
             return len(lines)
         
     if len(r) == 0:
-        N = 2
+        N = 10
     else:    
         N = get_most_outer_line(np.max(r), lines)
 
@@ -92,8 +107,38 @@ def plot(data):
     # Add circular grid lines
     ax.grid(True)
     
+    # Scoreboard
+    ax_score = fig.add_subplot(gs[1])
+    ax_score.axis('off')  # Turn off the axis
+    scoreboard_title_obj = ax_score.set_title("", fontsize=8, y=0.8)
+    
+    #ax_score.set_title(list(score_dict.keys())[0])
+    # Display the scores
+    for item in score_dict["Score"]:
+        if item:
+            if score_text:
+                score_text += ", "
+            score_text += str(item)
+    score_text += "\n" + str(score_dict["Tot"])
+    text_obj = ax_score.text(0.5, 0.1, score_text, ha='center', va='center', transform=ax_score.transAxes)
+    
+    #shot_obj = ax_score.text(0.1, 0.1, shot_text, ha='center', va='center', transform=ax_score.transAxes)
+    def on_resize(event):
+        fig_width, fig_height = fig.get_size_inches()
+        new_fontsize = fig_width * 2  # Adjust this multiplier as needed
+        text_obj.set_fontsize(new_fontsize)
+        #shot_obj.set_fontsize(new_fontsize)
+        scoreboard_title_obj.set_fontsize(new_fontsize)
+        scoreboard_title_obj.set_text(score_dict["Name"])  # Set the updated scoreboard title text
+        fig.canvas.draw()
 
-    return fig, ax
+    fig.canvas.mpl_connect('resize_event', on_resize)
+    
+    
+    fig.tight_layout()
+
+    
+    return fig, (ax, ax_score)
 
 def sort_list(list1, list2):
  
