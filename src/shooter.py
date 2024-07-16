@@ -39,7 +39,17 @@ class shooter():
         
     def add_shot(self, incoming_shot : list, relay, excercise, nr):
         print(excercise)
-        if excercise == "32" or excercise == "544" or excercise == "551" or excercise == "39" or excercise == "35":
+        if excercise == "32" or excercise == "544" or excercise == "551" or excercise == "39" or excercise == "35" or excercise == "547":
+            if "Serie" in self.active_serie:
+                if not "Excercise 2" in self.relays[relay]["series"].keys():
+                    #self.relays[relay]["series"]["Excercise 2"][nr] == incoming_shot
+                    self.active_serie = "Excercise 2"
+                elif not "Excercise 3" in self.relays[relay]["series"].keys():
+                    #self.relays[relay]["series"]["Excercise 3"][nr] == incoming_shot
+                    self.active_serie = "Excercise 3"
+                self.relays[relay]["series"][self.active_serie] = {}
+            self.relays[relay]["series"][self.active_serie][nr] = incoming_shot
+            """
             if not nr in self.relays[relay]["series"]["Excercise"].keys():
                 self.relays[relay]["series"]["Excercise"][nr] = incoming_shot
                 self.active_series = "Excercise"
@@ -59,6 +69,7 @@ class shooter():
                 except:
                     self.relays[relay]["series"]["Excercise 2"][nr] = incoming_shot
                     self.active_serie = "Excercise 2"
+                """
             
         else:
             for serie in self.relays[relay]["series"].keys():
