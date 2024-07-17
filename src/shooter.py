@@ -90,6 +90,7 @@ class shooter():
                                 
                                 find = True
                                 self.active_serie = serie
+                                self.relays[relay]["num_shots"] += 1
                                 break
                     if find:
                         break
@@ -103,7 +104,8 @@ class shooter():
                                     "league": league,
                                     "result": result,
                                     "inner tens": inner_tens,
-                                    "lane": lane}
+                                    "lane": lane,
+                                    "num_shots": 0}
     
     def check_if_innerten(self, x, y):
         distance = abs((x**2 + y**2)**0.5 - (self.caliber/2))
