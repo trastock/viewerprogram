@@ -32,5 +32,5 @@ def make_pdf(table, header, competition_name, city, date, document_type,
     config = pdfkit.configuration(wkhtmltopdf = path_to_wkhtml)
     
     pdfkit.from_string(ingoing_string, output_path = pdf_path, 
-                       configuration = config, css = r"C:\Users\emila\OneDrive - Linköpings universitet\Desktop\Nya skytteprogrammet\viewerprogram\src\make_pdf\style.css", 
+                       configuration = config, css = r"src\make_pdf\style.css", 
                        options = {"enable-local-file-access": ""})

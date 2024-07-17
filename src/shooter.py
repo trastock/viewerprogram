@@ -26,7 +26,7 @@ class shooter():
                     seriesline = line
         seriesline.pop(0)
         if seriesline.pop(0) == "dec":
-            self.dec = 1
+            dec = 1
         self.innerten = float(seriesline.pop(0))
         self.caliber = float(seriesline.pop(0))
         for i in range(len(seriesline)):
@@ -35,11 +35,12 @@ class shooter():
                 series["Series " + str(i + 1)]["Shot " + str(j + 1)] = []
         series["Remaining"] = {}
         series["Excercise"] = {}
-        return series
+        return series, dec
         
     def add_shot(self, incoming_shot : list, relay, excercise, nr):
-        print(excercise)
-        if excercise == "32" or excercise == "544" or excercise == "551" or excercise == "39" or excercise == "35" or excercise == "547":
+        print(incoming_shot)
+        #print(excercise)
+        if excercise == "32" or excercise == "35" or excercise == "544" or excercise == "551" or excercise == "39" or excercise == "35" or excercise == "547":
             if "Serie" in self.active_serie:
                 if not "Excercise 2" in self.relays[relay]["series"].keys():
                     #self.relays[relay]["series"]["Excercise 2"][nr] == incoming_shot
@@ -99,13 +100,15 @@ class shooter():
                 self.active_serie = "Remaining"
     
     def add_relay(self, relaynumber, diciplin, league, result, inner_tens, lane):
-        self.relays[relaynumber] = {"series": self.get_series(diciplin),
+        series, dec = self.get_series(diciplin)
+        self.relays[relaynumber] = {"series": series,
                                     "dicipline": diciplin,
                                     "league": league,
                                     "result": result,
                                     "inner tens": inner_tens,
                                     "lane": lane,
-                                    "num_shots": 0}
+                                    "num_shots": 0,
+                                    "dec": dec}
     
     def check_if_innerten(self, x, y):
         distance = abs((x**2 + y**2)**0.5 - (self.caliber/2))

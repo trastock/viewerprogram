@@ -1,4 +1,5 @@
 import csv
+import math
 
 try:
     from .shooter import shooter
@@ -242,7 +243,7 @@ class competition():
                     table.append([shooter.relays[type_content]["lane"], shooter.firstname + " " +  shooter.lastname, 
                                   shooter.team, shooter.relays[type_content]["league"]] + serie_part +
                                  [str(shooter.relays[type_content]["result"]) + "-" + str(shooter.relays[type_content]["inner tens"]) + "*",  
-                                  "Anm"])
+                                  ""])
             make_pdf(table, header, self.competition_name, self.host
                  , self.date, "Resultat", "Skjutlag " + type_content, 
                  self.logopic, self.sponsorpic, path, self.relays[type_content]["time"], 0)
@@ -262,18 +263,29 @@ class competition():
                             self.raw_shots.append(shot)
                             startnumber = shot[3][:3]
                             relay = shot[3][-1]
-                            
-                            if startnumber in self.shooters.keys():
+                            print(self.shooters.keys())
+                            if str(startnumber) in self.shooters.keys():
                                 try:
-                                    self.shooters[startnumber].add_shot([int(shot[10]), float(shot[11])/10, 
-                                                                        float(shot[14]), float(shot[15]), 
-                                                                        self.shooters[startnumber].check_if_innerten(float(shot[14]), float(shot[15]))], 
-                                                                        relay, shot[9], shot[13])
+                                    print("1")
+                                    if self.shooters[startnumber].relays[relay]["dec"] == 0:
+                                        print("2")
+                                        self.shooters[startnumber].add_shot([int(shot[10]), float(shot[11])/10, 
+                                                                            float(shot[14]), float(shot[15]), 
+                                                                            self.shooters[startnumber].check_if_innerten(float(shot[14]), float(shot[15]))], 
+                                                                            relay, shot[9], shot[13])
+                                    else:
+                                        print("3")
+                                        print(shot)
+                                        self.shooters[startnumber].add_shot([float(shot[10])/10, float(shot[10])/10, 
+                                                                            float(shot[14]), float(shot[15]), 
+                                                                            self.shooters[startnumber].check_if_innerten(float(shot[14]), float(shot[15]))], 
+                                                                            relay, shot[9], shot[13])
                                     #print(f"Nytt skott: {float(shot[11])/10}")
                                     #print(shot[9])
                                 
                                 
                                 except Exception as e:
+                                    print(f"Problem {e}")
                                     self.raw_shots.pop(-1)
                                     #return False
                                     #print(f"Något gick fel: {e}")

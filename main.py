@@ -326,11 +326,11 @@ class My_Window(QWidget):
             statement = prog.update_competitions()
         if statement:
             #prog.update_competitions()
-            #print(self.prog.competition.shooters["100"])
+            #print(self.prog.competition.shooters["100"].relays)
             relay = prog.active_relay
             row, col = 0, 0
             max_cols = math.ceil(self.prog.competition.get_number_of_shooters_in_relay(relay)/2)  # Set the maximum number of columns for the grid
-            print("Max columns", max_cols)
+            #print("Max columns", max_cols)
             for shooter in self.prog.competition.shooters.values():  
                 #fig, ax = src.plot(shooter.relays[relay]["series"][shooter.active_serie])
                 score_dict = {"Name": shooter.firstname + " " + shooter.lastname, "Tot": shooter.relays[relay]["result"], "Score": []}  # Example scoreboard data
@@ -367,13 +367,19 @@ if __name__ == "__main__":
     sponsorpic = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSvI9l2PnRlWMs5wbvUc-HDNSE7FXth9p83Rg&s"
     
     prog = src.Program()
-    prog.create_competition(hdf5_path= r"competitions\Dubbeltest Juli 2024.hdf5")
-    prog.slave_mode = True
-    """
+    #prog.create_competition(hdf5_path= r"competitions\Dubbeltest Juli 2024.hdf5")
+    #prog.slave_mode = True
+    
     prog.create_competition("Dubbeltest Juli 2024", "20/7-2024", "Nyköpings Skyttegille", 
                            "FR60PR", "6", "20", logopic, sponsorpic, "competitions")
     
+    prog.competition.add_relay("10:00", "")
+    prog.competition.add_relay("12:00", "")
+
     prog.competition.add_shooter("Emil", "Alakulju", "Nyköpings Skyttegille",)
+    prog.competition.add_shooter_to_relay("100", "FR60PR", "Herr", 0, 0, "1")
+    prog.competition.add_shooter_to_relay("100", "FR60PR", "Herr", 0, 0, "2")
+    """
     prog.competition.add_shooter("Erik", "Alakulju", "Södermalm och Liljeholmens Skytteförening")
     prog.competition.add_shooter("Alexander", "Devell", "Nyköping")
     prog.competition.add_shooter("Testshooter 1", "Lastname", "Nyköping")
@@ -381,8 +387,7 @@ if __name__ == "__main__":
     prog.competition.add_shooter("Testshooter 3", "Lastname", "Nyköping")
     prog.competition.add_shooter("Testshooter 4", "Lastname", "Nyköping")
     prog.competition.add_shooter("Testshooter 5", "Lastname", "Nyköping")
-    prog.competition.add_relay("10:00", "")
-    prog.competition.add_relay("12:00", "")
+    
     prog.competition.add_shooter_to_relay("100", "FR60PR", "Herr", 0, 0, "1")
     prog.competition.add_shooter_to_relay("100", "FR60PR", "Herr", 0, 0, "2")
     prog.competition.add_shooter_to_relay("101", "FR60PR", "Herr", 0, 0, "1")
@@ -394,10 +399,10 @@ if __name__ == "__main__":
     prog.competition.add_shooter_to_relay("105", "FR60PR", "Herr", 0, 0, "1")
     prog.competition.add_shooter_to_relay("106", "FR60PR", "Herr", 0, 0, "1")
     prog.competition.add_shooter_to_relay("107", "FR60PR", "Herr", 0, 0, "1")
-    
+    """
     prog.competition.create_import(r"C:\Sius\SiusData", False)
     prog.setup_socket()
-    """
+    
     #prog.create_competition()
     #prog.competition.import_from_hdf5(r"/home/emil/privata_proj/viewerprogram/competitions/Koxängtest.hdf5")
     #prog.competition.export_to_hdf5()
