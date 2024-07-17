@@ -3,9 +3,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math 
 
-from PyQt6.QtWidgets import QWidget, QApplication, QVBoxLayout, QScrollArea, QSizePolicy, QLabel, QGridLayout, QTableWidget, QTableWidgetItem
-from PyQt6.QtCore import QTimer
-from PyQt6.QtGui import QFont
+from PyQt6.QtWidgets import QWidget, QApplication, QVBoxLayout, QScrollArea, QSizePolicy, QLabel, QGridLayout, QTableWidget, QTableWidgetItem, QMenuBar, QDialog, QDialogButtonBox, QButtonGroup, QCheckBox, QPushButton, QComboBox, QListWidget
+from PyQt6.QtCore import QTimer, Qt
+from PyQt6.QtGui import QFont, QAction
 
 import sys
 
@@ -16,9 +16,61 @@ from matplotlib.figure import Figure
 class My_Window(QWidget):
     def __init__(self, prog):
         super().__init__()
-        self.layout = QVBoxLayout(self)
-        self.canvases = {}
+        self.setWindowTitle("Visningsprogram")
         self.prog = prog
+        # Create the menu bar
+        menu_bar = QMenuBar(self)
+        
+        # Create the File menu
+        file_menu = menu_bar.addMenu('File')
+
+        # Add actions to the File menu
+        new_action = QAction('New', self)
+        open_action = QAction('Open', self)
+        save_action = QAction('Save', self)
+        exit_action = QAction('Exit', self)
+
+        file_menu.addAction(new_action)
+        file_menu.addAction(open_action)
+        file_menu.addAction(save_action)
+        file_menu.addSeparator()  # Add a separator line
+        file_menu.addAction(exit_action)
+
+        # Connect the exit action to the close method
+        exit_action.triggered.connect(self.close)
+
+        # Create the Edit menu
+        edit_menu = menu_bar.addMenu('Edit')
+
+        # Add actions to the Edit menu
+        cut_action = QAction('Cut', self)
+        copy_action = QAction('Copy', self)
+        paste_action = QAction('Paste', self)
+
+        edit_menu.addAction(cut_action)
+        edit_menu.addAction(copy_action)
+        edit_menu.addAction(paste_action)
+        
+        self.layout = QVBoxLayout(self)
+        self.layout.setMenuBar(menu_bar)
+        self.canvases = {}
+        
+        relay_manu = menu_bar.addMenu('Relay')
+        
+        change_relaybutton = QAction('Change Relay', self)
+        
+        relay_manu.addAction(change_relaybutton)
+        
+        change_relaybutton.triggered.connect(self.change_relay)
+        
+        # Create the Documents menu
+        documents_menu = menu_bar.addMenu('Documents')
+        create_startlist_button = QAction('Create Startlist', self)
+        create_result_button = QAction('Create Result', self)
+        documents_menu.addAction(create_startlist_button)
+        documents_menu.addAction(create_result_button)
+        create_startlist_button.triggered.connect(self.create_startlist_dialog)
+        create_result_button.triggered.connect(self.create_result_dialog)
         
         # Create scoreboard table for top half
         self.scoreboard_table = QTableWidget()
@@ -62,6 +114,135 @@ class My_Window(QWidget):
         
         self.resizeEvent = self.adjust_sizes
     
+    def change_relay(self):
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Change Relay")
+
+        dialog_layout = QVBoxLayout()
+        dialog.setLayout(dialog_layout)
+
+        relay_buttons = QButtonGroup(dialog)
+        relay_buttons.setExclusive(True)
+
+        for relay in self.prog.competition.relays.keys():
+            checkbox = QCheckBox(relay)
+            relay_buttons.addButton(checkbox)
+            dialog_layout.addWidget(checkbox)
+
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        buttons.accepted.connect(lambda: self.set_active_relay(dialog, relay_buttons))
+        buttons.rejected.connect(dialog.reject)
+
+        dialog_layout.addWidget(buttons)
+
+        dialog.exec()
+
+    def set_active_relay(self, dialog, relay_buttons):
+        for button in relay_buttons.buttons():
+            if button.isChecked():
+                self.prog.active_relay = button.text()
+                break
+        dialog.accept()
+    
+    def create_startlist_dialog(self):
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Create Startlist")
+
+        dialog_layout = QVBoxLayout()
+        dialog.setLayout(dialog_layout)
+
+        relay_buttons = QButtonGroup(dialog)
+        relay_buttons.setExclusive(True)
+
+        for relay in self.prog.competition.relays.keys():
+            checkbox = QCheckBox(relay)
+            relay_buttons.addButton(checkbox)
+            dialog_layout.addWidget(checkbox)
+
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        buttons.accepted.connect(lambda: self.create_startlist(dialog, relay_buttons))
+        buttons.rejected.connect(dialog.reject)
+
+        dialog_layout.addWidget(buttons)
+
+        dialog.exec()
+
+    def create_startlist(self, dialog, relay_buttons):
+        for button in relay_buttons.buttons():
+            if button.isChecked():
+                path = prog.document_path + self.prog.competition.competition_name + "_startlista_" + button.text() + ".pdf"
+                self.prog.competition.create_startlist(path, button.text())
+                break
+        dialog.accept()
+
+    def create_result_dialog(self):
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Create Result")
+
+        dialog_layout = QVBoxLayout()
+        dialog.setLayout(dialog_layout)
+
+        # Create a button group for selecting "Relay" or "League"
+        result_type_group = QButtonGroup(dialog)
+        result_type_group.setExclusive(False)
+
+        relay_button = QCheckBox("Relay")
+        league_button = QCheckBox("League")
+
+        result_type_group.addButton(relay_button)
+        result_type_group.addButton(league_button)
+
+        dialog_layout.addWidget(relay_button)
+        dialog_layout.addWidget(league_button)
+
+        # Create a list widget for selecting the specific relays
+        list_widget = QListWidget()
+        dialog_layout.addWidget(list_widget)
+
+        def update_list_widget():
+            list_widget.clear()
+            if relay_button.isChecked():
+                list_widget.addItems(self.prog.competition.relays.keys())
+            elif league_button.isChecked():
+                list_widget.addItems(self.prog.competition.leagues.keys())
+
+        relay_button.toggled.connect(update_list_widget)
+        league_button.toggled.connect(update_list_widget)
+
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        buttons.accepted.connect(lambda: self.create_result(dialog, list_widget, relay_button.text))
+        buttons.rejected.connect(dialog.reject)
+
+        dialog_layout.addWidget(buttons)
+
+        dialog.exec()
+
+    def create_result(self, dialog, list_widget, button_text):
+        selected_items = []
+        
+        for item in list_widget.selectedItems():
+            selected_items.append(item.text())
+        if selected_items:
+            for item in selected_items:
+                if item in self.prog.competition.relays:
+                    path = prog.document_path + self.prog.competition.competition_name + "_resultat_" + item + ".pdf"
+                    self.prog.competition.create_result(path, "relay", item)
+                elif item in self.prog.competition.leagues:
+                    self.prog.create_result(league=item)
+        dialog.accept()
+        """ 
+        for index in range(combo_box.count()):
+            if combo_box.itemCheckState(index) == Qt.CheckState.Checked:
+                selected_items.append(combo_box.itemText(index))
+        if selected_items:
+            for item in selected_items:
+                if item in self.prog.competition.relays:
+                    path = prog.document_path + self.prog.competition.competition_name + "_resultat_" + item + ".pdf"
+                    self.prog.create_result(path, "relay" ,relay=item)
+                elif item in self.prog.competition.leagues:
+                    self.prog.create_result(league=item)
+        dialog.accept()
+        """
     def adjust_sizes(self, event):
         # Calculate font size based on window width
         window_height = self.height()
@@ -92,7 +273,7 @@ class My_Window(QWidget):
         """
     def update_scoreboard(self):
         # Populate and sort scoreboard with shooter data
-        relay = "1"
+        relay = prog.active_relay
         scoreboard_data = []
         for shooter in self.prog.competition.shooters.values():
             score_dict = {
@@ -138,10 +319,15 @@ class My_Window(QWidget):
 
     
     def update_canvas(self):
-        if prog.update_competitions():
+        
+        if prog.slave_mode:
+            statement = prog.competition.import_from_hdf5(prog.competition.hdf5path)
+        else:
+            statement = prog.update_competitions()
+        if statement:
             #prog.update_competitions()
             #print(self.prog.competition.shooters["100"])
-            relay = "1"
+            relay = prog.active_relay
             row, col = 0, 0
             max_cols = math.ceil(self.prog.competition.get_number_of_shooters_in_relay(relay)/2)  # Set the maximum number of columns for the grid
             print("Max columns", max_cols)
@@ -180,8 +366,9 @@ if __name__ == "__main__":
     sponsorpic = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSvI9l2PnRlWMs5wbvUc-HDNSE7FXth9p83Rg&s"
     
     prog = src.Program()
-    
-    
+    prog.create_competition(hdf5_path= r"competitions\Dubbeltest Juli 2024.hdf5")
+    prog.slave_mode = True
+    """
     prog.create_competition("Dubbeltest Juli 2024", "20/7-2024", "Nyköpings Skyttegille", 
                            "FR60PR", "6", "20", logopic, sponsorpic, "competitions")
     
@@ -209,7 +396,7 @@ if __name__ == "__main__":
     
     prog.competition.create_import(r"C:\Sius\SiusData", False)
     prog.setup_socket()
-    
+    """
     #prog.create_competition()
     #prog.competition.import_from_hdf5(r"/home/emil/privata_proj/viewerprogram/competitions/Koxängtest.hdf5")
     #prog.competition.export_to_hdf5()

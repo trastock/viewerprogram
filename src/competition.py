@@ -21,7 +21,8 @@ class competition():
                  lastlane : str = "",
                  logopic : str = "",
                  sponsorpic : str = "",
-                 hdf5dir : str = ""
+                 hdf5dir : str = "",
+                 hdf5path : str = ""
                  ):
     
         self.competition_name = competition_name
@@ -39,6 +40,10 @@ class competition():
         self.logopic = logopic
         self.sponsorpic = sponsorpic
         self.hdf5dir = hdf5dir
+        if not hdf5path and self.competition_name:
+            self.hdf5path = self.hdf5dir + "\\" + self.competition_name + ".hdf5"
+        else:
+            self.hdf5path = hdf5path
         self.number_of_shooters = 0
         self.raw_data = {}
         self.raw_shots = [] 
@@ -92,7 +97,7 @@ class competition():
         #self.relays.append({len(self.relays) + 1: time})
     
     def export_to_hdf5(self):
-        with h5py.File(self.hdf5dir + "\\" + self.competition_name + ".hdf5", "w") as f: 
+        with h5py.File(self.hdf5path, "w") as f: 
             f.create_dataset("competition_info/name", data = self.competition_name)
             f.create_dataset("competition_info/date", data = self.date)
             f.create_dataset("competition_info/host", data = self.host)
@@ -108,7 +113,7 @@ class competition():
             f.create_dataset("competition_info/logopic", data = self.logopic)
             f.create_dataset("competition_info/sponsorpic", data = self.sponsorpic)           
             f.create_dataset("competition_info/hdf5dir", data = self.hdf5dir) 
-            
+            f.create_dataset("competition_info/hdf5path", data = self.hdf5path) 
             for shooter in self.shooters.values():
                 current_dir = shooter.startnumber
                 f.create_dataset((shooter.startnumber + "/first_name"), data = shooter.firstname)
@@ -143,7 +148,8 @@ class competition():
                         self.logopic = self.get_string(f, key + "/logopic")
                         self.sponsorpic = self.get_string(f, key + "/sponsorpic")
                         self.hdf5dir = self.get_string(f, key + "/hdf5dir")
-                        
+                        self.hdf5path = self.hdf5dir + "\\" + self.competition_name + ".hdf5"
+                         
                         for relay in list(f[key + "/relays"].keys()):
                             self.add_relay(self.get_string(f, key + "/relays/" + relay + "/time"), relay)
                             self.relays[relay]["current_lane"] = int(self.get_string(f, key + "/relays/" + relay + "/current_lane"))
@@ -175,11 +181,13 @@ class competition():
                                                 active_shooter.relays[relay]["series"][series_key][shot_key] =  array.tolist()
                             except Exception as e:
                                 #print("Failed to load series: " + str(e))
-                                pass 
+                                pass
                         
                         
         except OSError:
-            raise Exception("hdf5-file was not found")
+            #raise Exception("hdf5-file was not found")
+            return False
+        return True
     
     def get_string(self, f, path):
         dataset = f[path]

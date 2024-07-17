@@ -13,12 +13,15 @@ class Program():
         self.competition = None
         self.last_update_shot = 0
         self.last_update_remain = 0
+        self.slave_mode = False
+        self.active_relay = "1"
+        self.document_path = ""
     
     def create_competition(self, name = "", date = "", host = "", diciplin = "", first_lane = "", 
-                           last_lane = "", logo_pic = "", sponsor_pic = "", hdf5_dir = ""):
+                           last_lane = "", logo_pic = "", sponsor_pic = "", hdf5_dir = "", hdf5_path = ""):
         self.competition = competition(name, date, host, diciplin, 
                                                           first_lane, last_lane, logo_pic,
-                                                          sponsor_pic, hdf5_dir)
+                                                          sponsor_pic, hdf5_dir, hdf5_path)
     def setup_socket(self):
         try:
             self.s = data_setup()
@@ -30,21 +33,16 @@ class Program():
         if self.s:
             data = self.competition.raw_data
             old_data = copy.deepcopy(data)
-            #print(old_data)
             data = update_data(self.s, data)
             
             if data:
                 flag = True
                 if not "_SHOT" in old_data.keys():
-                    print("5")
                     if not "_SHOT" in data.keys():
                         return False
                     flag = False
-                print(flag)
                 if flag:
-                    print("4")
                     if len(old_data["_SHOT"]) == len(data["_SHOT"]):
-                        print("3")
                         return False
                 
                 self.competition.update(data)

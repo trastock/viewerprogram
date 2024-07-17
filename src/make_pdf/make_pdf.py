@@ -1,11 +1,12 @@
 from tabulate import tabulate
 import pdfkit
-
+#path_to_wkhtml = '/bin/wkhtmltopdf'
+#/home/emil/privata_proj/viewerprogram/src/make_pdf/style.css
 
 def make_pdf(table, header, competition_name, city, date, document_type, 
              relay_title, logopic, sponsorpic, pdf_path, time = "",
              sort_by = 0,
-             path_to_wkhtml = '/bin/wkhtmltopdf'):
+             path_to_wkhtml =r"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe"):
     
     before_table = ("<img class=logopic src=\"" + logopic + 
                     "\"> <img class=sponsorpic src=\"" + 
@@ -31,5 +32,5 @@ def make_pdf(table, header, competition_name, city, date, document_type,
     config = pdfkit.configuration(wkhtmltopdf = path_to_wkhtml)
     
     pdfkit.from_string(ingoing_string, output_path = pdf_path, 
-                       configuration = config, css = "/home/emil/privata_proj/viewerprogram/src/make_pdf/style.css", 
+                       configuration = config, css = r"C:\Users\emila\OneDrive - Linköpings universitet\Desktop\Nya skytteprogrammet\viewerprogram\src\make_pdf\style.css", 
                        options = {"enable-local-file-access": ""})
