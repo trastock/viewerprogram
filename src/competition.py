@@ -59,6 +59,7 @@ class competition():
                                      #self.diciplin, str(self.currentlane), startnumber, relay))
         self.shooters[startnumber] = shooter(firstname, lastname, team, startnumber)
         self.number_of_shooters +=1
+        self.export_to_hdf5()
  
     def add_shooter_to_relay(self, startnumber, diciplin, league, result, inner_tens, relay, lane = ""):
         number_of_shooters = self.get_number_of_shooters_in_relay(relay)
@@ -72,6 +73,7 @@ class competition():
         #for shooter in self.shooters:
          #   if shooter.startnumber == startnumber:
           #      shooter.add_relay(relay, diciplin, league, result, lane)
+        self.export_to_hdf5()
         
     """
     def add_shooter_and_lane(self, firstname, lastname, league, team, result, relay, lane):
@@ -94,95 +96,112 @@ class competition():
             self.relays[relay_number] = {"time": time,
                                                       "current_lane": round(0.5*(int(self.lastlane) + int(self.firstlane)))}
         
- 
+        self.export_to_hdf5()
         #self.relays.append({len(self.relays) + 1: time})
     
     def export_to_hdf5(self):
-        with h5py.File(self.hdf5path, "w") as f: 
-            f.create_dataset("competition_info/name", data = self.competition_name)
-            f.create_dataset("competition_info/date", data = self.date)
-            f.create_dataset("competition_info/host", data = self.host)
-            f.create_dataset("competition_info/diciplin", data = self.diciplin)
-            f.create_dataset("competition_info/firstlane", data = self.firstlane)
-            f.create_dataset("competition_info/lastlane", data = self.lastlane)
+        with h5py.File(self.hdf5path, "w") as f:
+            try:
+                f.create_dataset("competition_info/name", data = self.competition_name)
+                f.create_dataset("competition_info/date", data = self.date)
+                f.create_dataset("competition_info/host", data = self.host)
+                f.create_dataset("competition_info/diciplin", data = self.diciplin)
+                f.create_dataset("competition_info/firstlane", data = self.firstlane)
+                f.create_dataset("competition_info/lastlane", data = self.lastlane)
+                f.create_dataset("competition_info/logopic", data = self.logopic)
+                f.create_dataset("competition_info/sponsorpic", data = self.sponsorpic)           
+                f.create_dataset("competition_info/hdf5dir", data = self.hdf5dir) 
+                f.create_dataset("competition_info/hdf5path", data = self.hdf5path) 
+            except Exception as e:
+                print(f"Exception: {e}")
             #f.create_dataset("competition_info/currentlane", data = str(self.currentlane))
-            for relay in self.relays:
-                f.create_dataset("competition_info/relays/" + relay + "/time", 
-                                 data = self.relays[relay]["time"])
-                f.create_dataset("competition_info/relays/" + relay + "/current_lane", 
-                                 data = str(self.relays[relay]["current_lane"]))
-            f.create_dataset("competition_info/logopic", data = self.logopic)
-            f.create_dataset("competition_info/sponsorpic", data = self.sponsorpic)           
-            f.create_dataset("competition_info/hdf5dir", data = self.hdf5dir) 
-            f.create_dataset("competition_info/hdf5path", data = self.hdf5path) 
-            for shooter in self.shooters.values():
-                current_dir = shooter.startnumber
-                f.create_dataset((shooter.startnumber + "/first_name"), data = shooter.firstname)
-                f.create_dataset((shooter.startnumber + "/last_name"), data = shooter.lastname)
-                f.create_dataset((shooter.startnumber + "/startnumber"), data = shooter.startnumber)
-                f.create_dataset((shooter.startnumber + "/team"), data = shooter.team)
-                
-                for relay in shooter.relays:
-                    relay_dir = current_dir + "/" + relay
-                    f.create_dataset((relay_dir + "/diciplin"), data = shooter.relays[relay]["dicipline"])
-                    f.create_dataset((relay_dir + "/league"), data = shooter.relays[relay]["league"])
-                    f.create_dataset((relay_dir + "/result"), data = str(shooter.relays[relay]["result"]))
-                    f.create_dataset((relay_dir + "/lane"), data = str(shooter.relays[relay]["lane"]))
-                    f.create_dataset((relay_dir + "/inner tens"), data = str(shooter.relays[relay]["inner tens"]))
-                    for series in shooter.relays[relay]["series"]:
-                        for shot in shooter.relays[relay]["series"][series]:
-                            array = np.array(shooter.relays[relay]["series"][series][shot])
-                            f.create_dataset((relay_dir + "/" + series + "/" + shot), data = array)
-
+            try:
+                for relay in self.relays:
+                    f.create_dataset("competition_info/relays/" + relay + "/time", 
+                                    data = self.relays[relay]["time"])
+                    f.create_dataset("competition_info/relays/" + relay + "/current_lane", 
+                                    data = str(self.relays[relay]["current_lane"]))
+            except Exception as e:
+                print(f"Exception: {e}")
+            
+            try:
+                for shooter in self.shooters.values():
+                    current_dir = shooter.startnumber
+                    f.create_dataset((shooter.startnumber + "/first_name"), data = shooter.firstname)
+                    f.create_dataset((shooter.startnumber + "/last_name"), data = shooter.lastname)
+                    f.create_dataset((shooter.startnumber + "/startnumber"), data = shooter.startnumber)
+                    f.create_dataset((shooter.startnumber + "/team"), data = shooter.team)
+                    
+                    for relay in shooter.relays:
+                        relay_dir = current_dir + "/" + relay
+                        f.create_dataset((relay_dir + "/diciplin"), data = shooter.relays[relay]["dicipline"])
+                        f.create_dataset((relay_dir + "/league"), data = shooter.relays[relay]["league"])
+                        f.create_dataset((relay_dir + "/result"), data = str(shooter.relays[relay]["result"]))
+                        f.create_dataset((relay_dir + "/lane"), data = str(shooter.relays[relay]["lane"]))
+                        f.create_dataset((relay_dir + "/inner tens"), data = str(shooter.relays[relay]["inner tens"]))
+                        for series in shooter.relays[relay]["series"]:
+                            for shot in shooter.relays[relay]["series"][series]:
+                                array = np.array(shooter.relays[relay]["series"][series][shot])
+                                f.create_dataset((relay_dir + "/" + series + "/" + shot), data = array)
+            except Exception as e:
+                print(f"Exception: {e}")
     def import_from_hdf5(self, path):
         try:
             with h5py.File(path, "r") as f:
                 for key in list(f.keys()):
                     if key == "competition_info":
-                        self.competition_name = self.get_string(f, key + "/name")
-                        self.date  = self.get_string(f, key + "/date")
-                        self.host = self.get_string(f, key + "/host")
-                        self.diciplin = self.get_string(f, key + "/diciplin")
-                        self.firstlane = self.get_string(f, key + "/firstlane")
-                        self.lastlane = self.get_string(f, key + "/lastlane")
-                        #self.currentlane = int(self.get_string(f, key + "/currentlane"))
-                        self.logopic = self.get_string(f, key + "/logopic")
-                        self.sponsorpic = self.get_string(f, key + "/sponsorpic")
-                        self.hdf5dir = self.get_string(f, key + "/hdf5dir")
-                        self.hdf5path = self.hdf5dir + "\\" + self.competition_name + ".hdf5"
-                         
-                        for relay in list(f[key + "/relays"].keys()):
-                            self.add_relay(self.get_string(f, key + "/relays/" + relay + "/time"), relay)
-                            self.relays[relay]["current_lane"] = int(self.get_string(f, key + "/relays/" + relay + "/current_lane"))
+                        try:
+                            self.competition_name = self.get_string(f, key + "/name")
+                            self.date  = self.get_string(f, key + "/date")
+                            self.host = self.get_string(f, key + "/host")
+                            self.diciplin = self.get_string(f, key + "/diciplin")
+                            self.firstlane = self.get_string(f, key + "/firstlane")
+                            self.lastlane = self.get_string(f, key + "/lastlane")
+                            #self.currentlane = int(self.get_string(f, key + "/currentlane"))
+                            self.logopic = self.get_string(f, key + "/logopic")
+                            self.sponsorpic = self.get_string(f, key + "/sponsorpic")
+                            self.hdf5dir = self.get_string(f, key + "/hdf5dir")
+                            self.hdf5path = self.hdf5dir + "\\" + self.competition_name + ".hdf5"
+                        except Exception and e:
+                            print(f"Exception: {e}")
+                        try:
+                            for relay in list(f[key + "/relays"].keys()):
+                                self.add_relay(self.get_string(f, key + "/relays/" + relay + "/time"), relay)
+                                self.relays[relay]["current_lane"] = int(self.get_string(f, key + "/relays/" + relay + "/current_lane"))
+                        except Exception as e:
+                            print(f"Exception: {e}")
                     else:
-                        self.add_shooter(self.get_string(f, key + "/first_name"), 
-                                         self.get_string(f, key + "/last_name"),
-                                         self.get_string(f, key + "/team"), 
-                                         key) 
-                        active_shooter = self.shooters[key]
-                        #for shooter in self.shooters:
-                         #           if shooter.startnumber == key:
-                          #              active_shooter = shooter
-                        
-                        for relay in list(f[key].keys()):
-                            try:
-                                int(relay)
-                                self.add_shooter_to_relay(key, 
-                                                        self.get_string(f, key + "/" + relay + "/diciplin"),
-                                                        self.get_string(f, key + "/" + relay + "/league"),
-                                                        float(self.get_string(f, key + "/" + relay + "/result")),
-                                                        int(self.get_string(f, key + "/" + relay + "/inner tens")),
-                                                        relay,
-                                                        self.get_string(f, key + "/" + relay + "/lane"))
-                                for series_key in list(f[key + "/" + relay].keys()):
-                                    if type(f[key + "/" + relay + "/" + series_key]) == h5py._hl.group.Group:
-                                        for shot_key in list(f[key + "/" + relay + "/" + series_key].keys()):
-                                            if type(f[key + "/" + relay + "/" + series_key + "/" + shot_key]) == h5py._hl.dataset.Dataset:
-                                                array = np.array(f[key + "/" + relay + "/" + series_key + "/" + shot_key])
-                                                active_shooter.relays[relay]["series"][series_key][shot_key] =  array.tolist()
-                            except Exception as e:
-                                #print("Failed to load series: " + str(e))
-                                pass
+                        try:
+                            self.add_shooter(self.get_string(f, key + "/first_name"), 
+                                            self.get_string(f, key + "/last_name"),
+                                            self.get_string(f, key + "/team"), 
+                                            key) 
+                            active_shooter = self.shooters[key]
+                            #for shooter in self.shooters:
+                            #           if shooter.startnumber == key:
+                            #              active_shooter = shooter
+                            
+                            for relay in list(f[key].keys()):
+                                try:
+                                    int(relay)
+                                    self.add_shooter_to_relay(key, 
+                                                            self.get_string(f, key + "/" + relay + "/diciplin"),
+                                                            self.get_string(f, key + "/" + relay + "/league"),
+                                                            float(self.get_string(f, key + "/" + relay + "/result")),
+                                                            int(self.get_string(f, key + "/" + relay + "/inner tens")),
+                                                            relay,
+                                                            self.get_string(f, key + "/" + relay + "/lane"))
+                                    for series_key in list(f[key + "/" + relay].keys()):
+                                        if type(f[key + "/" + relay + "/" + series_key]) == h5py._hl.group.Group:
+                                            for shot_key in list(f[key + "/" + relay + "/" + series_key].keys()):
+                                                if type(f[key + "/" + relay + "/" + series_key + "/" + shot_key]) == h5py._hl.dataset.Dataset:
+                                                    array = np.array(f[key + "/" + relay + "/" + series_key + "/" + shot_key])
+                                                    active_shooter.relays[relay]["series"][series_key][shot_key] =  array.tolist()
+                                except Exception as e:
+                                    #print("Failed to load series: " + str(e))
+                                    pass
+                        except Exception as e:
+                            print(f"Excp: {e}")
                         
                         
         except OSError:

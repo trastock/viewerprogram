@@ -18,10 +18,12 @@ class Program():
         self.document_path = ""
     
     def create_competition(self, name = "", date = "", host = "", diciplin = "", first_lane = "", 
-                           last_lane = "", logo_pic = "", sponsor_pic = "", hdf5_dir = "", hdf5_path = ""):
+                           last_lane = "", logo_pic = "", sponsor_pic = "", hdf5_dir = "", hdf5_path = "", just_load = True):
         self.competition = competition(name, date, host, diciplin, 
                                                           first_lane, last_lane, logo_pic,
                                                           sponsor_pic, hdf5_dir, hdf5_path)
+        if not just_load:
+            self.competition.export_to_hdf5()
     def setup_socket(self):
         try:
             self.s = data_setup()

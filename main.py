@@ -3,9 +3,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math 
 
-from PyQt6.QtWidgets import QWidget, QApplication, QVBoxLayout, QScrollArea, QSizePolicy, QLabel, QGridLayout, QTableWidget, QTableWidgetItem, QMenuBar, QDialog, QDialogButtonBox, QButtonGroup, QCheckBox, QPushButton, QComboBox, QListWidget
+from PyQt6.QtWidgets import QWidget, QApplication, QVBoxLayout, QScrollArea, QSizePolicy, QLabel, QGridLayout, QTableWidget, QTableWidgetItem, QMenuBar, QDialog, QDialogButtonBox, QButtonGroup, QCheckBox, QPushButton, QComboBox, QListWidget, QFileDialog, QFormLayout, QLineEdit
 from PyQt6.QtCore import QTimer, Qt
-from PyQt6.QtGui import QFont, QAction
+from PyQt6.QtGui import QFont, QAction, QKeySequence, QShortcut
 
 import sys
 
@@ -36,9 +36,13 @@ class My_Window(QWidget):
         file_menu.addSeparator()  # Add a separator line
         file_menu.addAction(exit_action)
 
+        # Connect the open action to the load file method
+        open_action.triggered.connect(self.load_file)
+        
         # Connect the exit action to the close method
         exit_action.triggered.connect(self.close)
-
+        # Connect the new action to open the competition details dialog
+        new_action.triggered.connect(self.open_competition_details_dialog)
         # Create the Edit menu
         edit_menu = menu_bar.addMenu('Edit')
 
@@ -55,11 +59,11 @@ class My_Window(QWidget):
         self.layout.setMenuBar(menu_bar)
         self.canvases = {}
         
-        relay_manu = menu_bar.addMenu('Relay')
+        relay_menu = menu_bar.addMenu('Relay')
         
         change_relaybutton = QAction('Change Relay', self)
         
-        relay_manu.addAction(change_relaybutton)
+        relay_menu.addAction(change_relaybutton)
         
         change_relaybutton.triggered.connect(self.change_relay)
         
@@ -71,6 +75,26 @@ class My_Window(QWidget):
         documents_menu.addAction(create_result_button)
         create_startlist_button.triggered.connect(self.create_startlist_dialog)
         create_result_button.triggered.connect(self.create_result_dialog)
+        
+        # Create the Slave Mode menu
+        slave_menu = menu_bar.addMenu('Slave Mode')
+        toggle_slave_action = QAction('Toggle Slave Mode', self)
+        slave_menu.addAction(toggle_slave_action)
+        toggle_slave_action.triggered.connect(self.toggle_slave_mode)
+        
+        # Create the View menu for fullscreen mode
+        view_menu = menu_bar.addMenu('View')
+        fullscreen_action = QAction('Toggle Fullscreen', self)
+        view_menu.addAction(fullscreen_action)
+        fullscreen_action.triggered.connect(self.toggle_fullscreen)
+        
+        add_relay_action = QAction('Add Relay', self)  # New action to add relay
+        relay_menu.addAction(add_relay_action)  # Add the new action to the menu
+        add_relay_action.triggered.connect(self.add_relay_dialog)  # Connect action to method
+
+        add_shooter_action = QAction("Add Shooter", self)
+        add_shooter_action.triggered.connect(self.add_shooter_dialog)
+        relay_menu.addAction(add_shooter_action)
         
         # Create scoreboard table for top half
         self.scoreboard_table = QTableWidget()
@@ -113,6 +137,36 @@ class My_Window(QWidget):
         self.timer.start(1000)  # Update every 1000 milliseconds (1 second)
         
         self.resizeEvent = self.adjust_sizes
+        self.showNormal()
+    
+    def toggle_fullscreen(self):
+        if self.isFullScreen:
+            self.showNormal()
+        else:
+            self.showFullScreen()
+        self.isFullScreen = not self.isFullScreen
+
+    
+    def toggle_slave_mode(self):
+        #if not hasattr(self.prog, 'competition') or not hasattr(self.prog.competition, 'slave_mode'):
+         #   return  # No slave mode attribute found in prog.competition
+
+        self.prog.slave_mode = not self.prog.slave_mode  # Toggle the slave mode
+
+        # Optionally, you can display a message or update the UI to reflect the change in slave mode
+        if self.prog.slave_mode:
+            self.setWindowTitle("Visningsprogram (Slave Mode Enabled)")
+        else:
+            self.setWindowTitle("Visningsprogram (Slave Mode Disabled)")
+            prog.setup_socket()
+            prog.competition.create_import(r"C:\Sius\SiusData", False)
+    
+    def load_file(self):
+        path, _ = QFileDialog.getOpenFileName(self, "Open Competition File", "", "HDF5 Files (*.hdf5);;All Files (*)")
+        if path:
+            self.prog.create_competition(path)
+            self.prog.competition.import_from_hdf5(path)
+            self.prog.slave_mode = True
     
     def change_relay(self):
         dialog = QDialog(self)
@@ -273,93 +327,230 @@ class My_Window(QWidget):
         """
     def update_scoreboard(self):
         # Populate and sort scoreboard with shooter data
-        relay = prog.active_relay
-        scoreboard_data = []
-        for shooter in self.prog.competition.shooters.values():
-            score_dict = {
-                "Name": f"{shooter.firstname} {shooter.lastname}",
-                "Tot": shooter.relays[relay]["result"],
-                "NumShots": shooter.relays[relay]["num_shots"],
-                "Score": []
-            }
-            for serie in shooter.relays[relay]["series"]:
-                if "Serie" in serie:
-                    score_dict["Score"].append(shooter.relays[relay]["series"][serie]["Tot"])
-            
-            # Calculate average score per shot
-            if score_dict["NumShots"] > 0:
-                score_dict["AvgScorePerShot"] = score_dict["Tot"] / score_dict["NumShots"]
-            else:
-                score_dict["AvgScorePerShot"] = 0
-            
-            scoreboard_data.append(score_dict)
-        
-        # Sort scoreboard data based on average score per shot
-        scoreboard_data.sort(key=lambda x: x["AvgScorePerShot"], reverse=True)
-        
-        # Clear existing data in the scoreboard
-        self.scoreboard_table.setRowCount(0)
-        
-        # Populate scoreboard table with sorted data
-        for row_position, data in enumerate(scoreboard_data):
-            self.scoreboard_table.insertRow(row_position)
-            
-            # Name column
-            name_item = QTableWidgetItem(data["Name"])
-            self.scoreboard_table.setItem(row_position, 0, name_item)
-            
-            # Series scores column (Switched with Total score)
-            series_scores_str = ", ".join(map(str, data["Score"]))
-            series_scores_item = QTableWidgetItem(series_scores_str)
-            self.scoreboard_table.setItem(row_position, 1, series_scores_item)
-            
-            # Total score column (Switched with Series score)
-            total_score_item = QTableWidgetItem(str(data["Tot"]))
-            self.scoreboard_table.setItem(row_position, 2, total_score_item)
-
-    
-    def update_canvas(self):
-        
-        if prog.slave_mode:
-            statement = prog.competition.import_from_hdf5(prog.competition.hdf5path)
-        else:
-            statement = prog.update_competitions()
-        if statement:
-            #prog.update_competitions()
-            #print(self.prog.competition.shooters["100"].relays)
+        try:
             relay = prog.active_relay
-            row, col = 0, 0
-            max_cols = math.ceil(self.prog.competition.get_number_of_shooters_in_relay(relay)/2)  # Set the maximum number of columns for the grid
-            #print("Max columns", max_cols)
-            for shooter in self.prog.competition.shooters.values():  
-                #fig, ax = src.plot(shooter.relays[relay]["series"][shooter.active_serie])
-                score_dict = {"Name": shooter.firstname + " " + shooter.lastname, "Tot": shooter.relays[relay]["result"], "Score": []}  # Example scoreboard data
+            scoreboard_data = []
+            for shooter in self.prog.competition.shooters.values():
+                score_dict = {
+                    "Name": f"{shooter.firstname} {shooter.lastname}",
+                    "Tot": shooter.relays[relay]["result"],
+                    "NumShots": shooter.relays[relay]["num_shots"],
+                    "Score": []
+                }
                 for serie in shooter.relays[relay]["series"]:
                     if "Serie" in serie:
-                        print(serie)
                         score_dict["Score"].append(shooter.relays[relay]["series"][serie]["Tot"])
-                fig, ax = src.plot(shooter.relays[relay]["series"][shooter.active_serie], score_dict)
-                if not shooter.startnumber in self.canvases.keys():
-                    canvas = FigureCanvasQTAgg(fig)
-                    canvas.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-                    self.canvases[shooter.startnumber] = canvas
-                    self.scroll_layout.addWidget(canvas, row, col)
-                    
-                    col += 1
-                    if col >= max_cols:
-                        col = 0
-                        row += 1
+                
+                # Calculate average score per shot
+                if score_dict["NumShots"] > 0:
+                    score_dict["AvgScorePerShot"] = score_dict["Tot"] / score_dict["NumShots"]
                 else:
-                    plt.close(self.canvases[shooter.startnumber].figure)
-                    self.canvases[shooter.startnumber].figure = fig
-                    self.canvases[shooter.startnumber].draw()
-                    
-                    #self.canvas.draw()
-            #print(self.prog.competition.shooters)
+                    score_dict["AvgScorePerShot"] = 0
+                
+                scoreboard_data.append(score_dict)
             
-            self.scroll_content.setLayout(self.scroll_layout)
-            self.scroll_content.updateGeometry()
-            self.scroll_content.adjustSize()
+            # Sort scoreboard data based on average score per shot
+            scoreboard_data.sort(key=lambda x: x["AvgScorePerShot"], reverse=True)
+            
+            # Clear existing data in the scoreboard
+            self.scoreboard_table.setRowCount(0)
+            
+            # Populate scoreboard table with sorted data
+            for row_position, data in enumerate(scoreboard_data):
+                self.scoreboard_table.insertRow(row_position)
+                
+                # Name column
+                name_item = QTableWidgetItem(data["Name"])
+                self.scoreboard_table.setItem(row_position, 0, name_item)
+                
+                # Series scores column (Switched with Total score)
+                series_scores_str = ", ".join(map(str, data["Score"]))
+                series_scores_item = QTableWidgetItem(series_scores_str)
+                self.scoreboard_table.setItem(row_position, 1, series_scores_item)
+                
+                # Total score column (Switched with Series score)
+                total_score_item = QTableWidgetItem(str(data["Tot"]))
+                self.scoreboard_table.setItem(row_position, 2, total_score_item)
+        except Exception as e:
+            print(f"Error, {e}")
+    
+    def update_canvas(self):
+        try:
+            if prog.slave_mode:
+                statement = prog.competition.import_from_hdf5(prog.competition.hdf5path)
+            else:
+                statement = prog.update_competitions()
+            if statement:
+                #prog.update_competitions()
+                #print(self.prog.competition.shooters["100"])
+                relay = prog.active_relay
+                row, col = 0, 0
+                max_cols = math.ceil(self.prog.competition.get_number_of_shooters_in_relay(relay)/2)  # Set the maximum number of columns for the grid
+                for shooter in self.prog.competition.shooters.values():  
+                    #fig, ax = src.plot(shooter.relays[relay]["series"][shooter.active_serie])
+                    score_dict = {"Name": shooter.firstname + " " + shooter.lastname, "Tot": shooter.relays[relay]["result"], "Score": []}  # Example scoreboard data
+                    for serie in shooter.relays[relay]["series"]:
+                        if "Serie" in serie:
+                            score_dict["Score"].append(shooter.relays[relay]["series"][serie]["Tot"])
+                    fig, ax = src.plot(shooter.relays[relay]["series"][shooter.active_serie], score_dict)
+                    if not shooter.startnumber in self.canvases.keys():
+                        canvas = FigureCanvasQTAgg(fig)
+                        canvas.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+                        self.canvases[shooter.startnumber] = canvas
+                        self.scroll_layout.addWidget(canvas, row, col)
+                        
+                        col += 1
+                        if col >= max_cols:
+                            col = 0
+                            row += 1
+                    else:
+                        plt.close(self.canvases[shooter.startnumber].figure)
+                        self.canvases[shooter.startnumber].figure = fig
+                        self.canvases[shooter.startnumber].draw()
+                        #self.canvas.draw()
+                #print(self.prog.competition.shooters)
+                
+                self.scroll_content.setLayout(self.scroll_layout)
+                self.scroll_content.updateGeometry()
+                self.scroll_content.adjustSize()
+        except Exception as e:
+            print(f"Exception: {e}")
+            
+    def open_competition_details_dialog(self):
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Enter Competition Details")
+
+        form_layout = QFormLayout()
+
+        name_input = QLineEdit()
+        date_input = QLineEdit()
+        host_input = QLineEdit()
+        discipline_input = QLineEdit()
+        first_lane_input = QLineEdit()
+        last_lane_input = QLineEdit()
+        logo_pic_input = QLineEdit()
+        sponsor_pic_input = QLineEdit()
+        hdf5_directory_input = QLineEdit()
+
+        form_layout.addRow("Competition Name:", name_input)
+        form_layout.addRow("Date:", date_input)
+        form_layout.addRow("Host:", host_input)
+        form_layout.addRow("Discipline:", discipline_input)
+        form_layout.addRow("First Lane:", first_lane_input)
+        form_layout.addRow("Last Lane:", last_lane_input)
+        form_layout.addRow("Logo Pic:", logo_pic_input)
+        form_layout.addRow("Sponsor Pic:", sponsor_pic_input)
+        form_layout.addRow("HDF5 Directory:", hdf5_directory_input)
+
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        buttons.accepted.connect(lambda: self.save_competition_details(
+            name_input.text(),
+            date_input.text(),
+            host_input.text(),
+            discipline_input.text(),
+            first_lane_input.text(),
+            last_lane_input.text(),
+            logo_pic_input.text(),
+            sponsor_pic_input.text(),
+            hdf5_directory_input.text(),
+            dialog
+        ))
+        buttons.rejected.connect(dialog.reject)
+
+        form_layout.addWidget(buttons)
+        dialog.setLayout(form_layout)
+
+        dialog.exec()
+
+    def save_competition_details(self, name, date, host, discipline, first_lane, last_lane, logo_pic, sponsor_pic, hdf5_directory, dialog):
+        # Here you can add your logic to save these details to your program
+        print(f"Competition Name: {name}")
+        print(f"Date: {date}")
+        print(f"Host: {host}")
+        print(f"Discipline: {discipline}")
+        print(f"First Lane: {first_lane}")
+        print(f"Last Lane: {last_lane}")
+        print(f"Logo Pic: {logo_pic}")
+        print(f"Sponsor Pic: {sponsor_pic}")
+        print(f"HDF5 Directory: {hdf5_directory}")
+
+        # Assuming prog has a method to set competition details
+        self.prog.create_competition(name, date, host, discipline, first_lane, last_lane, logo_pic, sponsor_pic, hdf5_directory, just_load = False)
+        
+        dialog.accept()
+        
+    def add_relay_dialog(self):
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Add Relay")
+
+        form_layout = QFormLayout()
+
+        relay_name_input = QLineEdit()
+        time_input = QLineEdit()  # Adjust this input type as per your application's logic
+
+        form_layout.addRow("Relay Name:", relay_name_input)
+        form_layout.addRow("Time:", time_input)
+
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        buttons.accepted.connect(lambda: self.add_relay(
+            relay_name_input.text(),
+            time_input.text(),
+            dialog
+        ))
+        buttons.rejected.connect(dialog.reject)
+
+        form_layout.addWidget(buttons)
+        dialog.setLayout(form_layout)
+
+        dialog.exec()
+
+    def add_relay(self, relay_name, time, dialog):
+        # Implement your logic to add a relay here
+        print(f"Adding relay: {relay_name} with time: {time}")
+
+        # Assuming prog has a method to add relays
+        self.prog.competition.add_relay(time, relay_name)
+
+        dialog.accept()
+    
+    def add_shooter_dialog(self):
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Add Shooter")
+
+        form_layout = QFormLayout()
+
+        shooter_first_name_input = QLineEdit()
+        shooter_last_name_input = QLineEdit()
+        shooter_team_input = QLineEdit()  # Adjust this input type as per your application's logic
+        
+        form_layout.addRow("Shooter firstname:", shooter_first_name_input)
+        form_layout.addRow("Shooter lastname:", shooter_last_name_input)
+        form_layout.addRow("Team:", shooter_team_input)
+
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        buttons.accepted.connect(lambda: self.add_shooter(
+            shooter_first_name_input.text(),
+            shooter_last_name_input.text(),
+            shooter_team_input.text(),
+            dialog
+        ))
+        buttons.rejected.connect(dialog.reject)
+
+        form_layout.addWidget(buttons)
+        dialog.setLayout(form_layout)
+
+        dialog.exec()
+
+    def add_shooter(self, shooter_first_name, shooter_last_name, team, dialog):
+        # Implement your logic to add a shooter here
+        print(f"Adding shooter: {shooter_first_name} {shooter_last_name} to team: {team}")
+
+        # Assuming prog has a method to add shooters
+        self.prog.competition.add_shooter(shooter_first_name, shooter_last_name, team)
+
+        dialog.accept()
+        
+        
 
 
 if __name__ == "__main__":
@@ -367,41 +558,40 @@ if __name__ == "__main__":
     sponsorpic = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSvI9l2PnRlWMs5wbvUc-HDNSE7FXth9p83Rg&s"
     
     prog = src.Program()
-    #prog.create_competition(hdf5_path= r"competitions\Dubbeltest Juli 2024.hdf5")
-    #prog.slave_mode = True
+    
     
     prog.create_competition("Dubbeltest Juli 2024", "20/7-2024", "Nyköpings Skyttegille", 
                            "FR60PR", "6", "20", logopic, sponsorpic, "competitions")
-    
-    prog.competition.add_relay("10:00", "")
-    prog.competition.add_relay("12:00", "")
-
-    prog.competition.add_shooter("Emil", "Alakulju", "Nyköpings Skyttegille",)
-    prog.competition.add_shooter_to_relay("100", "FR60PR", "Herr", 0, 0, "1")
-    prog.competition.add_shooter_to_relay("100", "FR60PR", "Herr", 0, 0, "2")
-    """
-    prog.competition.add_shooter("Erik", "Alakulju", "Södermalm och Liljeholmens Skytteförening")
-    prog.competition.add_shooter("Alexander", "Devell", "Nyköping")
-    prog.competition.add_shooter("Testshooter 1", "Lastname", "Nyköping")
-    prog.competition.add_shooter("Testshooter 2", "Lastname", "Nyköping")
-    prog.competition.add_shooter("Testshooter 3", "Lastname", "Nyköping")
-    prog.competition.add_shooter("Testshooter 4", "Lastname", "Nyköping")
-    prog.competition.add_shooter("Testshooter 5", "Lastname", "Nyköping")
-    
-    prog.competition.add_shooter_to_relay("100", "FR60PR", "Herr", 0, 0, "1")
-    prog.competition.add_shooter_to_relay("100", "FR60PR", "Herr", 0, 0, "2")
-    prog.competition.add_shooter_to_relay("101", "FR60PR", "Herr", 0, 0, "1")
-    prog.competition.add_shooter_to_relay("101", "FR60PR", "Herr", 0, 0, "2")
-    prog.competition.add_shooter_to_relay("102", "FR60PR", "HJ", 0, 0, "1")
-    prog.competition.add_shooter_to_relay("102", "FR60PR", "HJ", 0, 0, "2")
-    prog.competition.add_shooter_to_relay("103", "FR60PR", "Herr", 0, 0, "1")
-    prog.competition.add_shooter_to_relay("104", "FR60PR", "Herr", 0, 0, "1")
-    prog.competition.add_shooter_to_relay("105", "FR60PR", "Herr", 0, 0, "1")
-    prog.competition.add_shooter_to_relay("106", "FR60PR", "Herr", 0, 0, "1")
-    prog.competition.add_shooter_to_relay("107", "FR60PR", "Herr", 0, 0, "1")
-    """
-    prog.competition.create_import(r"C:\Sius\SiusData", False)
-    prog.setup_socket()
+    #prog.competition.add_relay("10:00", "")
+    #prog.competition.add_relay("12:00", "")
+    #
+    #prog.competition.add_shooter("Emil", "Alakulju", "Nyköpings Skyttegille",)
+    #prog.competition.add_shooter_to_relay("100", "FR60PR", "Herr", 0, 0, "1")
+    #prog.competition.add_shooter_to_relay("100", "FR60PR", "Herr", 0, 0, "2")
+    #
+    #prog.competition.add_shooter("Erik", "Alakulju", "Södermalm och Liljeholmens Skytteförening")
+    #prog.competition.add_shooter("Alexander", "Devell", "Nyköping")
+    #prog.competition.add_shooter("Testshooter 1", "Lastname", "Nyköping")
+    #prog.competition.add_shooter("Testshooter 2", "Lastname", "Nyköping")
+    #prog.competition.add_shooter("Testshooter 3", "Lastname", "Nyköping")
+    #prog.competition.add_shooter("Testshooter 4", "Lastname", "Nyköping")
+    #prog.competition.add_shooter("Testshooter 5", "Lastname", "Nyköping")
+    #
+    #prog.competition.add_shooter_to_relay("100", "FR60PR", "Herr", 0, 0, "1")
+    #prog.competition.add_shooter_to_relay("100", "FR60PR", "Herr", 0, 0, "2")
+    #prog.competition.add_shooter_to_relay("101", "FR60PR", "Herr", 0, 0, "1")
+    #prog.competition.add_shooter_to_relay("101", "FR60PR", "Herr", 0, 0, "2")
+    #prog.competition.add_shooter_to_relay("102", "FR60PR", "HJ", 0, 0, "1")
+    #prog.competition.add_shooter_to_relay("102", "FR60PR", "HJ", 0, 0, "2")
+    #prog.competition.add_shooter_to_relay("103", "FR60PR", "Herr", 0, 0, "1")
+    #prog.competition.add_shooter_to_relay("104", "FR60PR", "Herr", 0, 0, "1")
+    #prog.competition.add_shooter_to_relay("105", "FR60PR", "Herr", 0, 0, "1")
+    #prog.competition.add_shooter_to_relay("106", "FR60PR", "Herr", 0, 0, "1")
+    #prog.competition.add_shooter_to_relay("107", "FR60PR", "Herr", 0, 0, "1")
+    #
+    #
+    #prog.competition.create_import(r"C:\Sius\SiusData", False)
+    #prog.setup_socket()
     
     #prog.create_competition()
     #prog.competition.import_from_hdf5(r"/home/emil/privata_proj/viewerprogram/competitions/Koxängtest.hdf5")
@@ -412,7 +602,7 @@ if __name__ == "__main__":
     #comp.import_from_hdf5(r"C:\Users\emila\OneDrive - Linköpings universitet\Desktop\Nya skytteprogrammet\viewerprogram\competitions\Dubbeltest Juli 2024_old.hdf5")
     #   print("Test: ")
     #comp.export_to_hdf5()
-
+    
     
     app = QApplication(sys.argv)
     window = My_Window(prog)
@@ -435,18 +625,5 @@ if __name__ == "__main__":
         sys.exit(app.exec_())
     
     
-    """
-    try:
-        while True:
-            if not prog.update_competitions():
-                #print("Nytt skott!")
-                print(f"Resultat: {str(prog.competition.shooters["100"].relays["1"]["result"])} - {str(prog.competition.shooters["100"].relays["1"]["inner tens"])} *")
-                print(f"Raw_shots\n {prog.competition.raw_shots}")
-                #input("\nType Ctrl+C to exit. Press Enter to continue...")
-            #prog.update_competitions()
-            
-    except KeyboardInterrupt:
-        print("Program stopped by user.")
-    """
     
     
