@@ -96,6 +96,10 @@ class My_Window(QWidget):
         add_shooter_action.triggered.connect(self.add_shooter_dialog)
         relay_menu.addAction(add_shooter_action)
         
+        add_shooter_to_relay_action = QAction("Add Shooter to Relay", self)
+        add_shooter_to_relay_action.triggered.connect(self.add_shooter_to_relay_dialog)
+        relay_menu.addAction(add_shooter_to_relay_action)
+        
         # Create scoreboard table for top half
         self.scoreboard_table = QTableWidget()
         self.scoreboard_table.setColumnCount(3)  # Number of columns
@@ -139,6 +143,94 @@ class My_Window(QWidget):
         self.resizeEvent = self.adjust_sizes
         self.showNormal()
     
+    def add_shooter_to_relay_dialog(self):
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Add Shooter to Relay")
+
+        form_layout = QFormLayout(dialog)
+
+        # Create a drop-down menu for selecting the shooter
+        shooter_combo = QComboBox()
+        for shooter in self.prog.competition.shooters.values():
+            shooter_combo.addItem(shooter.firstname + " " + shooter.lastname)
+
+        # Create a drop-down menu for selecting the relay
+        relay_combo = QComboBox()
+        for relay in self.prog.competition.relays.keys():
+            relay_combo.addItem(relay)
+
+        # Create input fields for discipline and league
+        discipline_input = QLineEdit()
+        league_input = QLineEdit()
+        
+        # Create optional input fields for result, inner tens, and lane
+        result_input = QLineEdit()
+        inner_tens_input = QLineEdit()
+        lane_input = QLineEdit()
+
+        form_layout.addRow("Shooter:", shooter_combo)
+        form_layout.addRow("Relay:", relay_combo)
+        form_layout.addRow("Discipline:", discipline_input)
+        form_layout.addRow("League:", league_input)
+        form_layout.addRow("Result (Optional):", result_input)
+        form_layout.addRow("Inner Tens (Optional):", inner_tens_input)
+        form_layout.addRow("Lane (Optional):", lane_input)
+
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        buttons.accepted.connect(lambda: self.add_shooter_to_relay(shooter_combo.currentText(), relay_combo.currentText(), discipline_input.text(), league_input.text(), result_input.text(), inner_tens_input.text(), lane_input.text(), dialog))
+        buttons.rejected.connect(dialog.reject)
+
+        form_layout.addWidget(buttons)
+
+        dialog.exec()
+
+    def add_shooter_to_relay(self, shooter_name, relay_name, discipline, league, result, inner_tens, lane, dialog):
+        shooter = next((s for s in self.prog.competition.shooters.values() if (s.firstname + " " +  s.lastname) == shooter_name), None)
+        print(shooter.firstname + " " + shooter.lastname)
+        if shooter and relay_name in self.prog.competition.relays.keys():
+            print("1")
+            #relay = self.prog.competition.relays[relay_name]
+            #relay.add_shooter(shooter, discipline, league, result, inner_tens, lane)
+            if result == "":
+                result = 0
+            if inner_tens == "":
+                inner_tens = 0
+            self.prog.competition.add_shooter_to_relay(shooter.startnumber, discipline, league, relay_name, int(result), int(inner_tens), lane)
+        dialog.accept()
+    """ 
+    def add_shooter_to_relay_dialog(self):
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Add Shooter to Relay")
+
+        form_layout = QFormLayout(dialog)
+
+        # Create a drop-down menu for selecting the shooter
+        shooter_combo = QComboBox()
+        for shooter in self.prog.competition.shooters.values():
+            shooter_combo.addItem(shooter.firstname + shooter.lastname)
+
+        # Create a drop-down menu for selecting the relay
+        relay_combo = QComboBox()
+        for relay in self.prog.competition.relays.keys():
+            relay_combo.addItem(relay)
+
+        form_layout.addRow("Shooter:", shooter_combo)
+        form_layout.addRow("Relay:", relay_combo)
+
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        buttons.accepted.connect(lambda: self.add_shooter_to_relay(shooter_combo.currentText(), relay_combo.currentText(), dialog))
+        buttons.rejected.connect(dialog.reject)
+
+        form_layout.addWidget(buttons)
+
+        dialog.exec()
+
+    def add_shooter_to_relay(self, shooter_name, relay_name, dialog):
+        shooter = next((s for s in self.prog.competition.get_shooters() if s.name == shooter_name), None)
+        if shooter and relay_name in self.prog.competition.relays:
+            self.prog.competition.relays[relay_name].add_shooter(shooter)
+        dialog.accept()
+    """
     def toggle_fullscreen(self):
         if self.isFullScreen:
             self.showNormal()
@@ -559,8 +651,11 @@ if __name__ == "__main__":
     sponsorpic = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSvI9l2PnRlWMs5wbvUc-HDNSE7FXth9p83Rg&s"
     
     prog = src.Program()
+    app = QApplication(sys.argv)
+    window = My_Window(prog)
+    window.show()
     
-    
+    sys.exit(app.exec())
     #prog.create_competition("Dubbeltest Juli 2024", "20/7-2024", "Nyköpings Skyttegille", 
     #                       "FR60PR", "6", "20", logopic, sponsorpic, "competitions")
     #prog.competition.add_relay("10:00", "")
@@ -605,13 +700,10 @@ if __name__ == "__main__":
     #comp.export_to_hdf5()
     
     
-    app = QApplication(sys.argv)
-    window = My_Window(prog)
-    window.show()
+    
     #prog.competition.shooters["100"]["1"]["series"][prog.competition.shooters["100"].active_serie]
     
     #window.update_canvas()
-    sys.exit(app.exec())
     
     while True:
         prog.competition.import_from_hdf5("competitions/Koxängtest.hdf5")

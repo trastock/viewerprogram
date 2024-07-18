@@ -27,6 +27,8 @@ class shooter():
         seriesline.pop(0)
         if seriesline.pop(0) == "dec":
             dec = 1
+        else:
+            dec = 0
         self.innerten = float(seriesline.pop(0))
         self.caliber = float(seriesline.pop(0))
         for i in range(len(seriesline)):

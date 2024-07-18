@@ -28,7 +28,9 @@ def make_pdf(table, header, competition_name, city, date, document_type,
     ingoing_string = ingoing_string.replace("ä", "&auml")
     ingoing_string = ingoing_string.replace("Ö", "&Ouml")
     ingoing_string = ingoing_string.replace("ö", "&ouml")
-
+    ingoing_string = ingoing_string.replace("Ü", "&Uuml")
+    ingoing_string = ingoing_string.replace("ü", "&uuml")
+    
     config = pdfkit.configuration(wkhtmltopdf = path_to_wkhtml)
     
     pdfkit.from_string(ingoing_string, output_path = pdf_path, 

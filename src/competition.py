@@ -49,6 +49,7 @@ class competition():
         self.raw_data = {}
         self.raw_shots = [] 
         self.raw_total = []
+        self.import_mode = False
     def add_shooter(self, firstname, lastname, team, startnumber = ""):
         #number_of_shooters = self.get_number_of_shooters_in_relay(relay)
         if not startnumber:
@@ -58,11 +59,12 @@ class competition():
         #self.shooters.append(shooter(firstname, lastname, league, team, result, 
                                      #self.diciplin, str(self.currentlane), startnumber, relay))
         self.shooters[startnumber] = shooter(firstname, lastname, team, startnumber)
-        print(self.number_of_shooters)
+        #print(self.number_of_shooters)
         #self.number_of_shooters += 1
-        self.export_to_hdf5()
+        if not self.import_mode:
+            self.export_to_hdf5()
  
-    def add_shooter_to_relay(self, startnumber, diciplin, league, result, inner_tens, relay, lane = ""):
+    def add_shooter_to_relay(self, startnumber, diciplin, league, relay, result = 0, inner_tens = 0, lane = ""):
         number_of_shooters = self.get_number_of_shooters_in_relay(relay)
         if not lane:
             #self.currentlane = (self.currentlane + 
@@ -74,7 +76,8 @@ class competition():
         #for shooter in self.shooters:
          #   if shooter.startnumber == startnumber:
           #      shooter.add_relay(relay, diciplin, league, result, lane)
-        self.export_to_hdf5()
+        if not self.import_mode:
+            self.export_to_hdf5()
         
     """
     def add_shooter_and_lane(self, firstname, lastname, league, team, result, relay, lane):
@@ -97,7 +100,8 @@ class competition():
             self.relays[relay_number] = {"time": time,
                                                       "current_lane": round(0.5*(int(self.lastlane) + int(self.firstlane)))}
         
-        self.export_to_hdf5()
+        if not self.import_mode:
+            self.export_to_hdf5()
         #self.relays.append({len(self.relays) + 1: time})
     
     def export_to_hdf5(self):
@@ -147,6 +151,7 @@ class competition():
             except Exception as e:
                 print(f"Exception: {e}")
     def import_from_hdf5(self, path):
+        self.import_mode = True
         try:
             with h5py.File(path, "r") as f:
                 for key in list(f.keys()):
@@ -165,49 +170,57 @@ class competition():
                             self.hdf5path = self.hdf5dir + "\\" + self.competition_name + ".hdf5"
                         except Exception and e:
                             print(f"Exception: {e}")
+                            self.import_mode = False
                         try:
                             for relay in list(f[key + "/relays"].keys()):
                                 self.add_relay(self.get_string(f, key + "/relays/" + relay + "/time"), relay)
                                 self.relays[relay]["current_lane"] = int(self.get_string(f, key + "/relays/" + relay + "/current_lane"))
                         except Exception as e:
                             print(f"Exception: {e}")
+                            self.import_mode = False
                     else:
                         try:
                             self.add_shooter(self.get_string(f, key + "/first_name"), 
                                             self.get_string(f, key + "/last_name"),
                                             self.get_string(f, key + "/team"), 
                                             key) 
-                            active_shooter = self.shooters[key]
+                            active_shooter = self.shooters[key] 
+                            
                             #for shooter in self.shooters:
                             #           if shooter.startnumber == key:
                             #              active_shooter = shooter
-                            
                             for relay in list(f[key].keys()):
-                                try:
-                                    int(relay)
-                                    self.add_shooter_to_relay(key, 
-                                                            self.get_string(f, key + "/" + relay + "/diciplin"),
-                                                            self.get_string(f, key + "/" + relay + "/league"),
-                                                            float(self.get_string(f, key + "/" + relay + "/result")),
-                                                            int(self.get_string(f, key + "/" + relay + "/inner tens")),
-                                                            relay,
-                                                            self.get_string(f, key + "/" + relay + "/lane"))
-                                    for series_key in list(f[key + "/" + relay].keys()):
-                                        if type(f[key + "/" + relay + "/" + series_key]) == h5py._hl.group.Group:
-                                            for shot_key in list(f[key + "/" + relay + "/" + series_key].keys()):
-                                                if type(f[key + "/" + relay + "/" + series_key + "/" + shot_key]) == h5py._hl.dataset.Dataset:
-                                                    array = np.array(f[key + "/" + relay + "/" + series_key + "/" + shot_key])
-                                                    active_shooter.relays[relay]["series"][series_key][shot_key] =  array.tolist()
-                                except Exception as e:
-                                    #print("Failed to load series: " + str(e))
-                                    pass
+                                #int(relay)
+                                if relay in list(f["competition_info/relays"].keys()):
+                                    try:
+                                        self.add_shooter_to_relay(key, 
+                                                                self.get_string(f, key + "/" + relay + "/diciplin"),
+                                                                self.get_string(f, key + "/" + relay + "/league"),
+                                                                relay,
+                                                                float(self.get_string(f, key + "/" + relay + "/result")),
+                                                                int(self.get_string(f, key + "/" + relay + "/inner tens")),
+                                                                self.get_string(f, key + "/" + relay + "/lane"))
+                                        for series_key in list(f[key + "/" + relay].keys()):
+                                            if type(f[key + "/" + relay + "/" + series_key]) == h5py._hl.group.Group:
+                                                for shot_key in list(f[key + "/" + relay + "/" + series_key].keys()):
+                                                    if type(f[key + "/" + relay + "/" + series_key + "/" + shot_key]) == h5py._hl.dataset.Dataset:
+                                                        array = np.array(f[key + "/" + relay + "/" + series_key + "/" + shot_key])
+                                                        active_shooter.relays[relay]["series"][series_key][shot_key] =  array.tolist()
+                                    except Exception as e:
+                                        #print("Failed to load series: " + str(e))
+                                        self.import_mode = False
+                                        pass
                         except Exception as e:
+                            self.import_mode = False
                             print(f"Excp: {e}")
                         
                         
         except OSError:
             #raise Exception("hdf5-file was not found")
+            self.import_mode = False
             return False
+        
+        self.import_mode = False
         return True
     
     def get_string(self, f, path):
@@ -245,7 +258,7 @@ class competition():
                 table.append([shooter.relays[relay]["lane"], shooter.firstname + " " +  shooter.lastname, 
                               shooter.team, shooter.relays[relay]["league"]])
         make_pdf(table, header, self.competition_name, self.host
-                 , self.date, "Startlista", "Skjutlag " + relay, 
+                 , self.date, "Startlista", relay, 
                  self.logopic, self.sponsorpic, path, self.relays[relay]["time"], 0)
     
     def create_result(self, path, result_type, type_content):
