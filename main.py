@@ -547,6 +547,7 @@ class My_Window(QWidget):
 
         # Assuming prog has a method to add shooters
         self.prog.competition.add_shooter(shooter_first_name, shooter_last_name, team)
+        self.prog.competition.number_of_shooters += 1
 
         dialog.accept()
         
@@ -560,8 +561,8 @@ if __name__ == "__main__":
     prog = src.Program()
     
     
-    prog.create_competition("Dubbeltest Juli 2024", "20/7-2024", "Nyköpings Skyttegille", 
-                           "FR60PR", "6", "20", logopic, sponsorpic, "competitions")
+    #prog.create_competition("Dubbeltest Juli 2024", "20/7-2024", "Nyköpings Skyttegille", 
+    #                       "FR60PR", "6", "20", logopic, sponsorpic, "competitions")
     #prog.competition.add_relay("10:00", "")
     #prog.competition.add_relay("12:00", "")
     #

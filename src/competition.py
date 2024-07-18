@@ -58,7 +58,8 @@ class competition():
         #self.shooters.append(shooter(firstname, lastname, league, team, result, 
                                      #self.diciplin, str(self.currentlane), startnumber, relay))
         self.shooters[startnumber] = shooter(firstname, lastname, team, startnumber)
-        self.number_of_shooters +=1
+        print(self.number_of_shooters)
+        #self.number_of_shooters += 1
         self.export_to_hdf5()
  
     def add_shooter_to_relay(self, startnumber, diciplin, league, result, inner_tens, relay, lane = ""):
