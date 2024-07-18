@@ -95,10 +95,12 @@ class competition():
     def add_relay(self, time : str, relay_number):
         if not relay_number:
             self.relays[str(len(self.relays) + 1)] = {"time": time,
-                                                      "current_lane": round(0.5*(int(self.lastlane) + int(self.firstlane)))}
+                                                      "current_lane": round(0.5*(int(self.lastlane) + int(self.firstlane))),
+                                                      "relay_number": len(self.relays.keys()) + 1}
         else:
             self.relays[relay_number] = {"time": time,
-                                                      "current_lane": round(0.5*(int(self.lastlane) + int(self.firstlane)))}
+                                                      "current_lane": round(0.5*(int(self.lastlane) + int(self.firstlane))),
+                                                      "relay_number": len(self.relays.keys()) + 1}
         
         if not self.import_mode:
             self.export_to_hdf5()
@@ -126,6 +128,8 @@ class competition():
                                     data = self.relays[relay]["time"])
                     f.create_dataset("competition_info/relays/" + relay + "/current_lane", 
                                     data = str(self.relays[relay]["current_lane"]))
+                    f.create_dataset("competition_info/relays/" + relay + "/relay_number", 
+                                    data = str(self.relays[relay]["relay_number"]))
             except Exception as e:
                 print(f"Exception: {e}")
             
@@ -175,6 +179,7 @@ class competition():
                             for relay in list(f[key + "/relays"].keys()):
                                 self.add_relay(self.get_string(f, key + "/relays/" + relay + "/time"), relay)
                                 self.relays[relay]["current_lane"] = int(self.get_string(f, key + "/relays/" + relay + "/current_lane"))
+                                self.relays[relay]["relay_number"] = int(self.get_string(f, key + "/relays/" + relay + "/relay_number"))
                         except Exception as e:
                             print(f"Exception: {e}")
                             self.import_mode = False
@@ -241,13 +246,16 @@ class competition():
         with open(path + "\\" + self.competition_name.replace(" ", "_") + "_shooters.csv", "w", newline='') as csvfile:
             writer = csv.writer(csvfile)
             for shooter in self.shooters.values():
-                    for relay in shooter.relays:
+                print("Här borde vi hamna 1")
+                for relay in shooter.relays:
+                    if relay in self.relays:
+                        relay_number = self.relays[relay]["relay_number"] 
                         if shooter.relays[relay]["result"] == "" or (not keep_results):
                             result = "0"
-                        writer.writerow([";" + shooter.startnumber + relay + ";" + shooter.firstname + 
+                        writer.writerow([";" + shooter.startnumber + str(relay_number) + ";" + shooter.firstname + 
                                         " " +  shooter.lastname + ";;;" + shooter.relays[relay]["league"] + 
                                         ";0;0;" + shooter.team + ";;" +  str(shooter.relays[relay]["lane"]) + ";" +
-                                        relay + ";" + self.relays[relay]["time"] + 
+                                        str(relay_number) + ";" + self.relays[relay]["time"] + 
                                         ";0;1;" + result + ";0;0"])
     
     def create_startlist(self, path, relay):
@@ -295,34 +303,42 @@ class competition():
                         elif (shot not in self.raw_shots) and (len(shot) == 24):
                             self.raw_shots.append(shot)
                             startnumber = shot[3][:3]
-                            relay = shot[3][-1]
-                            print(self.shooters.keys())
-                            if str(startnumber) in self.shooters.keys():
-                                try:
-                                    print("1")
-                                    if self.shooters[startnumber].relays[relay]["dec"] == 0:
-                                        print("2")
-                                        self.shooters[startnumber].add_shot([int(shot[10]), float(shot[11])/10, 
-                                                                            float(shot[14]), float(shot[15]), 
-                                                                            self.shooters[startnumber].check_if_innerten(float(shot[14]), float(shot[15]))], 
-                                                                            relay, shot[9], shot[13])
-                                    else:
-                                        print("3")
-                                        print(shot)
-                                        self.shooters[startnumber].add_shot([float(shot[10])/10, float(shot[10])/10, 
-                                                                            float(shot[14]), float(shot[15]), 
-                                                                            self.shooters[startnumber].check_if_innerten(float(shot[14]), float(shot[15]))], 
-                                                                            relay, shot[9], shot[13])
-                                    #print(f"Nytt skott: {float(shot[11])/10}")
-                                    #print(shot[9])
-                                
-                                
-                                except Exception as e:
-                                    print(f"Problem {e}")
-                                    self.raw_shots.pop(-1)
-                                    #return False
-                                    #print(f"Något gick fel: {e}")
-                                    #print(shot)
+                            relay_number = shot[3][-1]
+                            relay = ""
+                            for relaykey in self.relays.keys():
+                                print(relaykey)
+                                print(self.relays[relaykey]["relay_number"])
+                                print(relay_number)
+                                if str(self.relays[relaykey]["relay_number"]) == str(relay_number):
+                                    relay = relaykey
+                                    break
+                            
+                            print("1")
+                            if relay:
+                                if str(startnumber) in self.shooters.keys():
+                                    try:
+                                        if self.shooters[startnumber].relays[relay]["dec"] == 0:
+                                            self.shooters[startnumber].add_shot([int(shot[10]), float(shot[11])/10, 
+                                                                                float(shot[14]), float(shot[15]), 
+                                                                                self.shooters[startnumber].check_if_innerten(float(shot[14]), float(shot[15]))], 
+                                                                                relay, shot[9], shot[13])
+                                        else:
+                                            print("3")
+                                            print(shot)
+                                            self.shooters[startnumber].add_shot([float(shot[10])/10, float(shot[10])/10, 
+                                                                                float(shot[14]), float(shot[15]), 
+                                                                                self.shooters[startnumber].check_if_innerten(float(shot[14]), float(shot[15]))], 
+                                                                                relay, shot[9], shot[13])
+                                        #print(f"Nytt skott: {float(shot[11])/10}")
+                                        #print(shot[9])
+                                    
+                                    
+                                    except Exception as e:
+                                        print(f"Problem {e}")
+                                        self.raw_shots.pop(-1)
+                                        #return False
+                                        #print(f"Något gick fel: {e}")
+                                        #print(shot)
                 """           
                 elif "TOTL" in item:
                     for total in raw_data[item]:

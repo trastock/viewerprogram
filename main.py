@@ -423,23 +423,24 @@ class My_Window(QWidget):
             relay = prog.active_relay
             scoreboard_data = []
             for shooter in self.prog.competition.shooters.values():
-                score_dict = {
-                    "Name": f"{shooter.firstname} {shooter.lastname}",
-                    "Tot": shooter.relays[relay]["result"],
-                    "NumShots": shooter.relays[relay]["num_shots"],
-                    "Score": []
-                }
-                for serie in shooter.relays[relay]["series"]:
-                    if "Serie" in serie:
-                        score_dict["Score"].append(shooter.relays[relay]["series"][serie]["Tot"])
-                
-                # Calculate average score per shot
-                if score_dict["NumShots"] > 0:
-                    score_dict["AvgScorePerShot"] = score_dict["Tot"] / score_dict["NumShots"]
-                else:
-                    score_dict["AvgScorePerShot"] = 0
-                
-                scoreboard_data.append(score_dict)
+                if relay in shooter.relays:
+                    score_dict = {
+                        "Name": f"{shooter.firstname} {shooter.lastname}",
+                        "Tot": shooter.relays[relay]["result"],
+                        "NumShots": shooter.relays[relay]["num_shots"],
+                        "Score": []
+                    }
+                    for serie in shooter.relays[relay]["series"]:
+                        if "Serie" in serie:
+                            score_dict["Score"].append(shooter.relays[relay]["series"][serie]["Tot"])
+                    
+                    # Calculate average score per shot
+                    if score_dict["NumShots"] > 0:
+                        score_dict["AvgScorePerShot"] = score_dict["Tot"] / score_dict["NumShots"]
+                    else:
+                        score_dict["AvgScorePerShot"] = 0
+                    
+                    scoreboard_data.append(score_dict)
             
             # Sort scoreboard data based on average score per shot
             scoreboard_data.sort(key=lambda x: x["AvgScorePerShot"], reverse=True)
@@ -479,27 +480,28 @@ class My_Window(QWidget):
                 row, col = 0, 0
                 max_cols = math.ceil(self.prog.competition.get_number_of_shooters_in_relay(relay)/2)  # Set the maximum number of columns for the grid
                 for shooter in self.prog.competition.shooters.values():  
-                    #fig, ax = src.plot(shooter.relays[relay]["series"][shooter.active_serie])
-                    score_dict = {"Name": shooter.firstname + " " + shooter.lastname, "Tot": shooter.relays[relay]["result"], "Score": []}  # Example scoreboard data
-                    for serie in shooter.relays[relay]["series"]:
-                        if "Serie" in serie:
-                            score_dict["Score"].append(shooter.relays[relay]["series"][serie]["Tot"])
-                    fig, ax = src.plot(shooter.relays[relay]["series"][shooter.active_serie], score_dict)
-                    if not shooter.startnumber in self.canvases.keys():
-                        canvas = FigureCanvasQTAgg(fig)
-                        canvas.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-                        self.canvases[shooter.startnumber] = canvas
-                        self.scroll_layout.addWidget(canvas, row, col)
-                        
-                        col += 1
-                        if col >= max_cols:
-                            col = 0
-                            row += 1
-                    else:
-                        plt.close(self.canvases[shooter.startnumber].figure)
-                        self.canvases[shooter.startnumber].figure = fig
-                        self.canvases[shooter.startnumber].draw()
-                        #self.canvas.draw()
+                    if relay in shooter.relays:
+                        #fig, ax = src.plot(shooter.relays[relay]["series"][shooter.active_serie])
+                        score_dict = {"Name": shooter.firstname + " " + shooter.lastname, "Tot": shooter.relays[relay]["result"], "Score": []}  # Example scoreboard data
+                        for serie in shooter.relays[relay]["series"]:
+                            if "Serie" in serie:
+                                score_dict["Score"].append(shooter.relays[relay]["series"][serie]["Tot"])
+                        fig, ax = src.plot(shooter.relays[relay]["series"][shooter.active_serie], score_dict)
+                        if not shooter.startnumber in self.canvases.keys():
+                            canvas = FigureCanvasQTAgg(fig)
+                            canvas.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+                            self.canvases[shooter.startnumber] = canvas
+                            self.scroll_layout.addWidget(canvas, row, col)
+                            
+                            col += 1
+                            if col >= max_cols:
+                                col = 0
+                                row += 1
+                        else:
+                            plt.close(self.canvases[shooter.startnumber].figure)
+                            self.canvases[shooter.startnumber].figure = fig
+                            self.canvases[shooter.startnumber].draw()
+                            #self.canvas.draw()
                 #print(self.prog.competition.shooters)
                 
                 self.scroll_content.setLayout(self.scroll_layout)
