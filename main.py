@@ -107,9 +107,9 @@ class My_Window(QWidget):
         
         # Create scoreboard table for top half
         self.scoreboard_table = QTableWidget()
-        self.scoreboard_table.setColumnCount(3)  # Number of columns
-        self.scoreboard_table.setHorizontalHeaderLabels(["Name", "Series Score", "Total Score"])
-        """ 
+        self.scoreboard_table.setColumnCount(4)  # Number of columns
+        self.scoreboard_table.setHorizontalHeaderLabels(["Name", "Series Score", "Total Score", "Diff"])
+        """
         # Create a placeholder widget for the top half
         self.top_placeholder = QLabel("Top Half Placeholder")
         self.top_placeholder.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
@@ -120,7 +120,8 @@ class My_Window(QWidget):
        # Set default column widths (adjust as needed)
         self.scoreboard_table.setColumnWidth(0, 200)  # Name column
         self.scoreboard_table.setColumnWidth(1, 100)  # Total Score column
-        self.scoreboard_table.setColumnWidth(2, 400)  # Series Score column
+        self.scoreboard_table.setColumnWidth(2, 400)  # Series Score colum
+        self.scoreboard_table.setColumnWidth(3, 100)  # Series Score colum
        
        # Set default row height and add spacing between rows
         self.scoreboard_table.verticalHeader().setDefaultSectionSize(50)  # Adjust row height (default is 30)
@@ -464,10 +465,10 @@ class My_Window(QWidget):
         font_size = window_height // 50  # Adjust divisor as needed
         
         # Calculate column widths based on window width
-        col_width_name = window_width // 3  # Adjust divisor as needed
-        col_width_total = window_width // 3  # Adjust divisor as needed
-        col_width_series = window_width // 3  # Adjust divisor as needed
-       
+        col_width_name = window_width // 4  # Adjust divisor as needed
+        col_width_total = window_width // 4  # Adjust divisor as needed
+        col_width_series = window_width // 4  # Adjust divisor as needed
+        col_width_diff = window_width // 4  # Adjust divisor as needed
         
         self.scoreboard_table.verticalHeader().setDefaultSectionSize(window_height // 19)  # Adjust row height (default is 30)
         
@@ -480,11 +481,80 @@ class My_Window(QWidget):
         self.scoreboard_table.setColumnWidth(0, col_width_name)
         self.scoreboard_table.setColumnWidth(1, col_width_total)
         self.scoreboard_table.setColumnWidth(2, col_width_series)
+        self.scoreboard_table.setColumnWidth(3, col_width_diff)
         """ 
         # Redraw canvas widgets (if needed)
         for canvas in self.canvases.values():
             canvas.draw()
         """
+        
+    def update_scoreboard(self):
+        # Populate and sort scoreboard with shooter data
+        try:
+            relay = prog.active_relay
+            scoreboard_data = []
+            
+            for shooter in self.prog.competition.shooters.values():
+                if relay in shooter.relays:
+                    score_dict = {
+                        "Name": f"{shooter.firstname} {shooter.lastname}",
+                        "Tot": shooter.relays[relay]["result"],
+                        "NumShots": shooter.relays[relay]["num_shots"],
+                        "Score": []
+                    }
+                    for serie in shooter.relays[relay]["series"]:
+                        if "Serie" in serie:
+                            score_dict["Score"].append(shooter.relays[relay]["series"][serie]["Tot"])
+                    
+                    # Calculate average score per shot
+                    if score_dict["NumShots"] > 0:
+                        score_dict["AvgScorePerShot"] = score_dict["Tot"] / score_dict["NumShots"]
+                    else:
+                        score_dict["AvgScorePerShot"] = 0
+                    
+                    scoreboard_data.append(score_dict)
+            
+            # Sort scoreboard data based on total score
+            scoreboard_data.sort(key=lambda x: x["Tot"], reverse=True)
+            
+            # Calculate score differences from the top shooter
+            if scoreboard_data:
+                max_total_score = scoreboard_data[0]["Tot"]
+                for data in scoreboard_data:
+                    data["ScoreDifference"] = max_total_score - data["Tot"]
+            else:
+                for data in scoreboard_data:
+                    data["ScoreDifference"] = 0
+            
+            # Clear existing data in the scoreboard
+            self.scoreboard_table.setRowCount(0)
+            
+            # Populate scoreboard table with sorted data
+            for row_position, data in enumerate(scoreboard_data):
+                self.scoreboard_table.insertRow(row_position)
+                
+                # Name column
+                name_item = QTableWidgetItem(data["Name"])
+                self.scoreboard_table.setItem(row_position, 0, name_item)
+                
+                # Series scores column
+                series_scores_str = ", ".join(map(str, data["Score"]))
+                series_scores_item = QTableWidgetItem(series_scores_str)
+                self.scoreboard_table.setItem(row_position, 1, series_scores_item)
+                
+                # Total score column
+                total_score_item = QTableWidgetItem(str(data["Tot"]))
+                self.scoreboard_table.setItem(row_position, 2, total_score_item)
+                
+                # Score difference column
+                score_diff_item = QTableWidgetItem(str(data["ScoreDifference"]))
+                self.scoreboard_table.setItem(row_position, 3, score_diff_item)
+            
+        except Exception as e:
+            print(f"Error, {e}")
+    
+    
+    """
     def update_scoreboard(self):
         # Populate and sort scoreboard with shooter data
         try:
@@ -534,7 +604,7 @@ class My_Window(QWidget):
                 self.scoreboard_table.setItem(row_position, 2, total_score_item)
         except Exception as e:
             print(f"Error, {e}")
-    
+    """
     def update_canvas(self):
         try:
             if prog.slave_mode:
