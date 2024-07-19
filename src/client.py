@@ -26,7 +26,8 @@ def update_data(s : socket.socket, outdata : dict):
     
     if not outdata:
         outdata = {}
-        for data_type in data_types:
+    for data_type in data_types:
+        if data_type not in outdata:
             outdata[data_type] = []
     try:
         while True:
@@ -47,7 +48,6 @@ def update_data(s : socket.socket, outdata : dict):
                 return None
     except Exception as e:
         print(f"An error occurred while reading from socket {e}")
-        
      #   print("didn't finish within 5 seconds")
     
     

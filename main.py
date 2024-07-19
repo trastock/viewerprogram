@@ -100,6 +100,11 @@ class My_Window(QWidget):
         add_shooter_to_relay_action.triggered.connect(self.add_shooter_to_relay_dialog)
         relay_menu.addAction(add_shooter_to_relay_action)
         
+        # Add the following in the Relay menu section
+        remove_shot_action = QAction("Remove Shot", self)
+        relay_menu.addAction(remove_shot_action)
+        remove_shot_action.triggered.connect(self.open_remove_shot_dialog)
+        
         # Create scoreboard table for top half
         self.scoreboard_table = QTableWidget()
         self.scoreboard_table.setColumnCount(3)  # Number of columns
@@ -142,6 +147,70 @@ class My_Window(QWidget):
         
         self.resizeEvent = self.adjust_sizes
         self.showNormal()
+    
+    def open_remove_shot_dialog(self):
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Remove Shot")
+
+        layout = QVBoxLayout(dialog)
+
+        # Shooter selection
+        layout.addWidget(QLabel("Select Shooter:"))
+        shooter_combo = QComboBox()
+        for shooter in self.prog.competition.shooters.values():
+            if prog.active_relay in shooter.relays.keys():
+                shooter_combo.addItem(shooter.firstname + " " + shooter.lastname)
+        layout.addWidget(shooter_combo)
+
+        # Series selection
+        layout.addWidget(QLabel("Select Series:"))
+        series_combo = QComboBox()
+        layout.addWidget(series_combo)
+
+        # Shot selection
+        layout.addWidget(QLabel("Select Shot:"))
+        shot_combo = QComboBox()
+        layout.addWidget(shot_combo)
+
+        # Populate series and shot based on shooter selection
+        def update_series():
+            shooter_name = shooter_combo.currentText()
+            shooter = next(s for s in self.prog.competition.shooters.values() if (s.firstname + " " + s.lastname) == shooter_name)
+            series_combo.clear()
+            for series_name in shooter.relays[self.prog.active_relay]["series"].keys():
+                series_combo.addItem(series_name)
+            update_shots()  # Update shots when series changes
+
+        def update_shots():
+            shooter_name = shooter_combo.currentText()
+            series_name = series_combo.currentText()
+            shooter = next(s for s in self.prog.competition.shooters.values() if (s.firstname + " " + s.lastname) == shooter_name)
+            series = shooter.relays[self.prog.active_relay]["series"][series_name]
+            shot_combo.clear()
+            for shot in series.keys():
+                if "Shot" in shot:
+                    shot_combo.addItem(str(shot))
+
+        shooter_combo.currentTextChanged.connect(update_series)
+        series_combo.currentTextChanged.connect(update_shots)
+        update_series()  # Initial population
+
+        # Add Delete Shot button
+        delete_button = QPushButton("Delete Shot")
+        layout.addWidget(delete_button)
+
+        def delete_shot():
+            shooter_name = shooter_combo.currentText()
+            series_name = series_combo.currentText()
+            shot = shot_combo.currentText()
+            shooter = next(s for s in self.prog.competition.shooters.values() if (s.firstname + " " + s.lastname) == shooter_name)
+            shooter.remove_shot(self.prog.active_relay, series_name, shot)
+            dialog.accept()
+
+        delete_button.clicked.connect(delete_shot)
+
+        dialog.setLayout(layout)
+        dialog.exec()
     
     def add_shooter_to_relay_dialog(self):
         dialog = QDialog(self)
@@ -188,7 +257,6 @@ class My_Window(QWidget):
         shooter = next((s for s in self.prog.competition.shooters.values() if (s.firstname + " " +  s.lastname) == shooter_name), None)
         print(shooter.firstname + " " + shooter.lastname)
         if shooter and relay_name in self.prog.competition.relays.keys():
-            print("1")
             #relay = self.prog.competition.relays[relay_name]
             #relay.add_shooter(shooter, discipline, league, result, inner_tens, lane)
             if result == "":

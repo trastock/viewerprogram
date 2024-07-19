@@ -36,7 +36,6 @@ class Program():
             data = self.competition.raw_data
             old_data = copy.deepcopy(data)
             data = update_data(self.s, data)
-            
             if data:
                 flag = True
                 if not "_SHOT" in old_data.keys():
@@ -45,6 +44,7 @@ class Program():
                     flag = False
                 if flag:
                     if len(old_data["_SHOT"]) == len(data["_SHOT"]):
+                        print("10")
                         return False
                 
                 self.competition.update(data)
@@ -89,5 +89,6 @@ class Program():
                 print("8")
                 return False
         else:
+            print("9")
             return False
                 

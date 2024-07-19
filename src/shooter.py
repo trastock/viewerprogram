@@ -88,8 +88,13 @@ class shooter():
                                 self.relays[relay]["series"][serie]["Inner tens"] += incoming_shot[4]
                                 self.relays[relay]["inner tens"] += incoming_shot[4]
                                 
-                                self.relays[relay]["series"][serie]["Tot"] += incoming_shot[self.dec]
-                                self.relays[relay]["series"][serie]["Tot"] = round(self.relays[relay]["series"][serie]["Tot"], 1)
+                                if self.relays[relay]["dec"]:
+                                    self.relays[relay]["series"][serie]["Tot"] += incoming_shot[1]
+                                    self.relays[relay]["series"][serie]["Tot"] = round(self.relays[relay]["series"][serie]["Tot"], 1)
+                                else:
+                                    self.relays[relay]["series"][serie]["Tot"] += incoming_shot[0]
+                                    self.relays[relay]["series"][serie]["Tot"] = int(self.relays[relay]["series"][serie]["Tot"])
+                                
                                 
                                 find = True
                                 self.active_serie = serie
@@ -119,5 +124,18 @@ class shooter():
         else:
             return 0
     
+    def remove_shot(self, relay, series, shot_index):
+        shot = self.relays[relay]["series"][series][shot_index]
+        if not "Deleted" in self.relays[relay]["series"].keys():
+            self.relays[relay]["series"]["Deleted"] = {}
+        self.relays[relay]["series"]["Deleted"][str(len(self.relays[relay]["series"]["Deleted"]) + 1)] = shot
+        if self.relays[relay]["dec"] == 0:
+            self.relays[relay]["series"][series]["Tot"] -= shot[0]
+            self.relays[relay]["result"] -= shot[0]
+        else:
+            self.relays[relay]["series"][series]["Tot"] -= shot[1]
+            self.relays[relay]["result"] -= shot[1]
+        self.relays[relay]["series"][series]["Inner tens"] -= shot[4]
+        self.relays[relay]["series"][series][shot_index].clear()
     def __str__(self):
         return self.startnumber

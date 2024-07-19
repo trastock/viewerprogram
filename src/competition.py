@@ -100,7 +100,7 @@ class competition():
         else:
             self.relays[relay_number] = {"time": time,
                                                       "current_lane": round(0.5*(int(self.lastlane) + int(self.firstlane))),
-                                                      "relay_number": len(self.relays.keys()) + 1}
+                                                      "relay_number":    len(self.relays.keys()) + 1}
         
         if not self.import_mode:
             self.export_to_hdf5()
@@ -118,7 +118,8 @@ class competition():
                 f.create_dataset("competition_info/logopic", data = self.logopic)
                 f.create_dataset("competition_info/sponsorpic", data = self.sponsorpic)           
                 f.create_dataset("competition_info/hdf5dir", data = self.hdf5dir) 
-                f.create_dataset("competition_info/hdf5path", data = self.hdf5path) 
+                f.create_dataset("competition_info/hdf5path", data = self.hdf5path)
+                f.create_dataset("competition_info/number_of_shooters", data = str(self.number_of_shooters))
             except Exception as e:
                 print(f"Exception: {e}")
             #f.create_dataset("competition_info/currentlane", data = str(self.currentlane))
@@ -132,7 +133,20 @@ class competition():
                                     data = str(self.relays[relay]["relay_number"]))
             except Exception as e:
                 print(f"Exception: {e}")
-            
+            try:
+                for data_type in self.raw_data:
+                    data_dir = "raw_data/" + data_type
+                    for i, data in enumerate(self.raw_data[data_type]):
+                        try:
+                            new_data_dir = data_dir + "/" + str(i)
+                            dt = h5py.string_dtype(encoding='utf-8')
+                            string_array = np.array(data, dtype=dt)
+                            f.create_dataset(new_data_dir, data=string_array)
+                        except:
+                            pass
+            except Exception as e:
+                print("fuck")
+                print(f"Exception: {e}")
             try:
                 for shooter in self.shooters.values():
                     current_dir = shooter.startnumber
@@ -152,6 +166,7 @@ class competition():
                             for shot in shooter.relays[relay]["series"][series]:
                                 array = np.array(shooter.relays[relay]["series"][series][shot])
                                 f.create_dataset((relay_dir + "/" + series + "/" + shot), data = array)
+                    
             except Exception as e:
                 print(f"Exception: {e}")
     def import_from_hdf5(self, path):
@@ -171,8 +186,9 @@ class competition():
                             self.logopic = self.get_string(f, key + "/logopic")
                             self.sponsorpic = self.get_string(f, key + "/sponsorpic")
                             self.hdf5dir = self.get_string(f, key + "/hdf5dir")
+                            self.number_of_shooters = int(self.get_string(f, key + "/number_of_shooters"))
                             self.hdf5path = self.hdf5dir + "\\" + self.competition_name + ".hdf5"
-                        except Exception and e:
+                        except Exception as e:
                             print(f"Exception: {e}")
                             self.import_mode = False
                         try:
@@ -183,6 +199,19 @@ class competition():
                         except Exception as e:
                             print(f"Exception: {e}")
                             self.import_mode = False
+                    elif key == "raw_data":
+                        self.raw_data = {}
+                        for data_type in list(f[key].keys()):
+                            self.raw_data[data_type] = []
+                            for data in list(f[key + "/" + data_type].keys()):
+                                string_array = f[key + "/" + data_type + "/" + data][:]
+                                self.raw_data[data_type].append([s.decode('utf-8') for s in string_array])
+                        
+                        
+                        #if "_SHOT" in self.raw_data.keys():
+                         #   self.raw_shots = self.raw_data["_SHOT"]
+                        #print(self.raw_data)
+                    
                     else:
                         try:
                             self.add_shooter(self.get_string(f, key + "/first_name"), 
@@ -224,7 +253,7 @@ class competition():
             #raise Exception("hdf5-file was not found")
             self.import_mode = False
             return False
-        
+        self.update(self.raw_data)
         self.import_mode = False
         return True
     
@@ -294,7 +323,9 @@ class competition():
     def update(self, raw_data):
         if raw_data is not None:
             self.raw_data = raw_data
+            print("3")
             for item in raw_data.keys():
+                print("4")
                 if "SHOT" in item:
                     for shot in raw_data[item]:
                         #print(len(shot))
@@ -305,19 +336,25 @@ class competition():
                             startnumber = shot[3][:3]
                             relay_number = shot[3][-1]
                             relay = ""
+                            print(self.relays)
                             for relaykey in self.relays.keys():
-                                print(relaykey)
-                                print(self.relays[relaykey]["relay_number"])
-                                print(relay_number)
+                                #print(relaykey)
+                                #print(self.relays[relaykey]["relay_number"])
+                                #print(relay_number)
+                                print(str(self.relays[relaykey]["relay_number"]))
                                 if str(self.relays[relaykey]["relay_number"]) == str(relay_number):
                                     relay = relaykey
                                     break
                             
                             print("1")
+                            print(relay_number)
+                            print(relay)
                             if relay:
+                                print("2")
                                 if str(startnumber) in self.shooters.keys():
                                     try:
                                         if self.shooters[startnumber].relays[relay]["dec"] == 0:
+                                            print("2")
                                             self.shooters[startnumber].add_shot([int(shot[10]), float(shot[11])/10, 
                                                                                 float(shot[14]), float(shot[15]), 
                                                                                 self.shooters[startnumber].check_if_innerten(float(shot[14]), float(shot[15]))], 
