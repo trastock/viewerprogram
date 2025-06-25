@@ -521,7 +521,7 @@ class My_Window(QWidget):
             if scoreboard_data:
                 max_total_score = scoreboard_data[0]["Tot"]
                 for data in scoreboard_data:
-                    data["ScoreDifference"] = max_total_score - data["Tot"]
+                    data["ScoreDifference"] = round(max_total_score - data["Tot"], 1)
             else:
                 for data in scoreboard_data:
                     data["ScoreDifference"] = 0

@@ -52,8 +52,7 @@ class competition():
         self.import_mode = False
     def add_shooter(self, firstname, lastname, team, startnumber = ""):
         #number_of_shooters = self.get_number_of_shooters_in_relay(relay)
-        if not startnumber:
-            startnumber = str(self.number_of_shooters + 100)
+        startnumber = str(self.number_of_shooters + 100)
         #self.currentlane = (self.currentlane + 
                             #((-1)**(number_of_shooters + 1))*number_of_shooters)
         #self.shooters.append(shooter(firstname, lastname, league, team, result, 
@@ -61,8 +60,10 @@ class competition():
         self.shooters[startnumber] = shooter(firstname, lastname, team, startnumber)
         #print(self.number_of_shooters)
         #self.number_of_shooters += 1
+        print("Startnummer: ", startnumber)
         if not self.import_mode:
             self.export_to_hdf5()
+        self.number_of_shooters += 1
  
     def add_shooter_to_relay(self, startnumber, diciplin, league, relay, result = 0, inner_tens = 0, lane = ""):
         number_of_shooters = self.get_number_of_shooters_in_relay(relay)
@@ -107,7 +108,7 @@ class competition():
         #self.relays.append({len(self.relays) + 1: time})
     
     def export_to_hdf5(self):
-        with h5py.File(self.hdf5path, "w") as f:
+        with h5py.File(self.hdf5path, "a") as f:
             try:
                 f.create_dataset("competition_info/name", data = self.competition_name)
                 f.create_dataset("competition_info/date", data = self.date)
@@ -306,17 +307,17 @@ class competition():
                 if type_content in shooter.relays.keys():
                     serie_part = []
                     for serie in shooter.relays[type_content]["series"]:
+                        print(header)
                         if "Serie" in serie:
                             if serie not in header:
-                                header.insert(-3, serie)
+                                header.insert(-2, serie)
                             serie_part.append(shooter.relays[type_content]["series"][serie]["Tot"])
                     table.append([shooter.relays[type_content]["lane"], shooter.firstname + " " +  shooter.lastname, 
                                   shooter.team, shooter.relays[type_content]["league"]] + serie_part +
-                                 [str(shooter.relays[type_content]["result"]) + "-" + str(shooter.relays[type_content]["inner tens"]) + "*",  
-                                  ""])
+                                 [str(shooter.relays[type_content]["result"])])
             make_pdf(table, header, self.competition_name, self.host
-                 , self.date, "Resultat", "Skjutlag " + type_content, 
-                 self.logopic, self.sponsorpic, path, self.relays[type_content]["time"], 0)
+                 , self.date, "Resultat", "" + type_content, 
+                 self.logopic, self.sponsorpic, path, self.relays[type_content]["time"], -1)
                 
         
     
