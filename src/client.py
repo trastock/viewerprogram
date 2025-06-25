@@ -23,7 +23,6 @@ def update_data(s : socket.socket, outdata : dict):
                   "_STAT", "_NAME", "_SHID", "_SHPR", 
                   "_SNAT", "_GRPH", "_TEAM", "_PRCH", 
                   "_SUBT", "_DIAG"]
-    
     if not outdata:
         outdata = {}
     for data_type in data_types:
@@ -32,7 +31,8 @@ def update_data(s : socket.socket, outdata : dict):
     try:
         while True:
             ready_to_read, ready_to_write, in_error = select.select([s], [], [], 0.1)
-            if ready_to_read: 
+            if ready_to_read:
+                
                 data = repr(s.recv(1024))
                 lst = data.split("\\r\\n")
                 for element in lst:

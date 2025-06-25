@@ -1,0 +1,9 @@
+=== Klass: KL15 ===
+Bana            Namn Förening Klass Serie 1  Serie 2  Serie 3  Serie 4   Tot
+  18 Alexander Redin Nyköping  KL15      70      0.0      0.0      0.0 70-0*
+
+=== Klass: KL17 ===
+Bana               Namn Förening Klass Serie 1  Serie 2  Serie 3  Serie 4   Tot
+  17 Alexander Eriksson Nyköping  KL17      69      0.0      0.0      0.0 69-1*
+  16   Alexander Devell Nyköping  KL17      67      0.0      0.0      0.0 67-1*
+
