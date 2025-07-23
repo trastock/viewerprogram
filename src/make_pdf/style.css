@@ -1,61 +1,61 @@
 @media print {
-    body{
+    body {
         width: 21cm;
         height: 29.7cm;
-        margin: 30mm 45mm 30mm 45mm; 
-   } 
-}
-
-h1 {
-    font-size: 40pt;
-    text-align: center;
+        margin: 30mm 45mm 30mm 45mm;
+        font-family: Arial, sans-serif;
+        position: relative;
+    }
 }
 
 .logopic {
-    float: left;
-    width: 5cm;   
+    width: 5cm;
+    height: auto;
 }
 
 .sponsorpic {
-    float: right;
+    position: absolute;
+    top: 0;
+    right: 0;
     width: 5cm;
+    height: auto;
 }
 
+.titles {
+    text-align: center;
+    margin-bottom: 1em;
+    clear: both;
+}
 
+h1 {
+    font-size: 32pt;
+    margin: 0.2em 0;
+}
 
 h2 {
-    font-size: 24pt;
-    text-align: center;
-}
-
-.citydate {
-    position: relative;
-    left: 2.3cm;   
+    font-size: 20pt;
+    margin: 0.2em 0;
+    font-weight: normal;
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
+    font-size: 12pt;
 }
 
 th {
-    padding-top: 12px;
-    padding-bottom: 12px;
+    padding: 8pt;
     text-align: center;
     background-color: #04AA6D;
     color: white;
+}
 
-    /*font-size: 17pt;
-    text-align: center;*/
+td {
+    padding: 6pt;
+    text-align: center;
 }
 
 tr:nth-child(even) {
     background-color: #f2f2f2;
 }
-
-td {
-    padding: 10pt;
-    font-size: 100%;
-    text-align: center;
-}
-
