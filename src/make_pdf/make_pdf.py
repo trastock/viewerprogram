@@ -6,14 +6,29 @@ import pdfkit
 def make_pdf(table, header, competition_name, city, date, document_type, 
              relay_title, logopic, sponsorpic, pdf_path, time = "",
              sort_by = 0,
-             path_to_wkhtml =r"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe"):
+             path_to_wkhtml ="/bin/wkhtmltopdf"):
     
-    before_table = ("<img class=logopic src=\"" + logopic + 
-                    "\"> <img class=sponsorpic src=\"" + 
-                    sponsorpic + "\"> <h1>" + competition_name  + 
-                    " " + document_type + "&nbsp;</h1> <h2 class=citydate>" + 
-                    city + " " + date + " " + time + "</h2> <h2>" + relay_title + 
-                    "</h2> <figure class=\"table\">")
+    before_table = f"""
+                <div class="header">
+
+                    <img class="logopic" src="{logopic}">
+
+                    <div class="header-center">
+                        <h1>{competition_name} {document_type}</h1>
+
+                        <h2 class="citydate">
+                            {city} {date} {time}
+                        </h2>
+
+                        <h2>{relay_title}</h2>
+                    </div>
+
+                    <img class="sponsorpic" src="{sponsorpic}">
+
+                </div>
+
+                <figure class="table">
+                """
     after_table = "</figure> <p>&nbsp;</p> <p>&nbsp;</p>"
     
     table = sorted(table, key=lambda k: float(k[sort_by]))
@@ -34,5 +49,5 @@ def make_pdf(table, header, competition_name, city, date, document_type,
     config = pdfkit.configuration(wkhtmltopdf = path_to_wkhtml)
     
     pdfkit.from_string(ingoing_string, output_path = pdf_path, 
-                       configuration = config, css = r"src\make_pdf\style.css", 
+                       configuration = config, css = r"src/make_pdf/style.css", 
                        options = {"enable-local-file-access": ""})
