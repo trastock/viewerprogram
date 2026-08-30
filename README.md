@@ -1,4 +1,4 @@
 # Viewer program
 Viewer and competition program for the SIUS-program
 
-a small change 3
+a small change 4
